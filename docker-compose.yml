@@ -1,0 +1,72 @@
+services:
+  memar:
+    image: ghcr.io/stratum-industries-foss/memar:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    command: python3 -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 9000
+    environment:
+      MEMAR_CONFIG_PATH: /app/config/devices.yaml
+      MEMAR_DB_PATH: /app/data/memar.db
+      MEMAR_DATA_DIR: /app/data
+      MEMAR_JWT_SECRET: "${MEMAR_JWT_SECRET:?MEMAR_JWT_SECRET must be set (openssl rand -hex 32)}"
+      MEMAR_ADMIN_USER: ${MEMAR_ADMIN_USER:-admin}
+      MEMAR_ADMIN_PASSWORD: "${MEMAR_ADMIN_PASSWORD:?Set MEMAR_ADMIN_PASSWORD (e.g., openssl rand -base64 18)}"
+      MEMAR_DEMO_MODE: ${MEMAR_DEMO_MODE:-0}
+      MEMAR_LICENSE_KEY: ${MEMAR_LICENSE_KEY:-}
+      # Stripe billing
+      MEMAR_STRIPE_SECRET_KEY: ${MEMAR_STRIPE_SECRET_KEY:-}
+      MEMAR_STRIPE_WEBHOOK_SECRET: ${MEMAR_STRIPE_WEBHOOK_SECRET:-}
+      MEMAR_STRIPE_PRICE_MAKER: ${MEMAR_STRIPE_PRICE_MAKER:-price_placeholder_maker}
+      MEMAR_STRIPE_PRICE_PRO: ${MEMAR_STRIPE_PRICE_PRO:-price_placeholder_pro}
+      MEMAR_STRIPE_PRICE_FARM: ${MEMAR_STRIPE_PRICE_FARM:-price_placeholder_farm}
+      MEMAR_STRIPE_PRICE_SCALE: ${MEMAR_STRIPE_PRICE_SCALE:-price_placeholder_scale}
+      MEMAR_STRIPE_PRICE_MAKER_ANNUAL: ${MEMAR_STRIPE_PRICE_MAKER_ANNUAL:-price_placeholder_maker_annual}
+      MEMAR_STRIPE_PRICE_PRO_ANNUAL: ${MEMAR_STRIPE_PRICE_PRO_ANNUAL:-price_placeholder_pro_annual}
+      MEMAR_STRIPE_PRICE_FARM_ANNUAL: ${MEMAR_STRIPE_PRICE_FARM_ANNUAL:-price_placeholder_farm_annual}
+      MEMAR_STRIPE_PRICE_SCALE_ANNUAL: ${MEMAR_STRIPE_PRICE_SCALE_ANNUAL:-price_placeholder_scale_annual}
+      MEMAR_STRIPE_PRICE_WORKSHOP: ${MEMAR_STRIPE_PRICE_WORKSHOP:-price_placeholder_workshop}
+      MEMAR_STRIPE_PRICE_BUSINESS: ${MEMAR_STRIPE_PRICE_BUSINESS:-price_placeholder_business}
+      MEMAR_STRIPE_PRICE_ENTERPRISE: ${MEMAR_STRIPE_PRICE_ENTERPRISE:-price_placeholder_enterprise}
+      MEMAR_STRIPE_PRICE_AIRGAP_STANDARD: ${MEMAR_STRIPE_PRICE_AIRGAP_STANDARD:-price_placeholder_airgap_standard}
+      MEMAR_STRIPE_PRICE_AIRGAP_ENTERPRISE: ${MEMAR_STRIPE_PRICE_AIRGAP_ENTERPRISE:-price_placeholder_airgap_enterprise}
+      # Email/SMTP
+      MEMAR_SMTP_HOST: ${MEMAR_SMTP_HOST:-smtp.gmail.com}
+      MEMAR_SMTP_PORT: ${MEMAR_SMTP_PORT:-587}
+      MEMAR_SMTP_USER: ${MEMAR_SMTP_USER:-}
+      MEMAR_SMTP_PASSWORD: ${MEMAR_SMTP_PASSWORD:-}
+      MEMAR_SMTP_FROM: ${MEMAR_SMTP_FROM:-}
+      # Messaging / ntfy
+      MEMAR_NTFY_URL: ${MEMAR_NTFY_URL:-}
+      MEMAR_NTFY_TOKEN: ${MEMAR_NTFY_TOKEN:-}
+      MEMAR_NTFY_PRIORITY: ${MEMAR_NTFY_PRIORITY:-default}
+      # License key generation (license issuer only — set on the instance that signs keys)
+      MEMAR_LICENSE_PRIVATE_KEY: ${MEMAR_LICENSE_PRIVATE_KEY:-}
+      # Public URL for Stripe and webhooks
+      MEMAR_PUBLIC_URL: ${MEMAR_PUBLIC_URL:-http://localhost:8000}
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9000/api/readyz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    mem_limit: 768m
+    cpus: "2.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+    ports:
+      - "8000:9000"
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - memar_data:/app/data
+
+volumes:
+  memar_data:

@@ -1,0 +1,243 @@
+printers:
+- id: printer-1
+  name: Printer 1
+  base_url: http://127.0.0.1:7125
+  ws_url: ws://127.0.0.1:7125/websocket
+  fluidd_url: http://printer-host:4408
+  auth_mode: trusted_local
+  tags:
+  - printer-host
+  - core
+  - f446
+  compatibility_profile: octopus-350-nozzle-06
+  nozzle_diameter_mm: 0.6
+  build_volume:
+    x: 350.0
+    y: 350.0
+    z: 400.0
+  supported_materials:
+  - PLA
+  - PETG
+  - ABS
+  current_material: PLA
+  current_spool_name: Generic PLA White
+  spool_remaining_g: 750.0
+  maintenance_state: production
+  maintenance_interval_hours: 120.0
+  maintenance_interval_jobs: 80
+  maintenance_interval_filament_g: 4000.0
+  last_service_at: '2026-04-01'
+  next_service_due: '2026-06-01'
+  filament_sensor: true
+  probe: true
+  webcam_expected: true
+  safe_nozzle_max_c: 300.0
+  safe_bed_max_c: 120.0
+  enabled: true
+  camera_url: null
+  timelapse_dir: null
+  maintenance_lockout: false
+  maintenance_due: false
+  jog_enabled: true
+  motion_check_required: true
+  notes: []
+  maintenance_notes: []
+  ui_targets: []
+  api_key: null
+  ui_label: Open UI
+- id: printer-2
+  name: Printer 2
+  base_url: http://127.0.0.1:7126
+  ws_url: ws://127.0.0.1:7126/websocket
+  fluidd_url: http://printer-host:4409
+  auth_mode: trusted_local
+  tags:
+  - printer-host
+  - core
+  - f446
+  compatibility_profile: octopus-350-nozzle-06
+  nozzle_diameter_mm: 0.6
+  build_volume:
+    x: 350
+    y: 350
+    z: 400
+  supported_materials:
+  - PLA
+  - PETG
+  - ABS
+  current_material: PLA
+  current_spool_name: Generic PLA White
+  spool_remaining_g: 750
+  maintenance_state: production
+  maintenance_interval_hours: 120
+  maintenance_interval_jobs: 80
+  maintenance_interval_filament_g: 4000
+  last_service_at: '2026-04-01'
+  next_service_due: '2026-06-01'
+  filament_sensor: true
+  probe: true
+  webcam_expected: true
+  safe_nozzle_max_c: 300
+  safe_bed_max_c: 120
+- id: printer-3
+  name: Printer 3
+  base_url: http://127.0.0.1:7127
+  ws_url: ws://127.0.0.1:7127/websocket
+  fluidd_url: http://printer-host:4410
+  auth_mode: trusted_local
+  tags:
+  - printer-host
+  - core
+  - f446
+  compatibility_profile: octopus-350-nozzle-06
+  nozzle_diameter_mm: 0.6
+  build_volume:
+    x: 350
+    y: 350
+    z: 400
+  supported_materials:
+  - PLA
+  - PETG
+  - ABS
+  current_material: PLA
+  current_spool_name: Generic PLA White
+  spool_remaining_g: 750
+  maintenance_state: production
+  maintenance_interval_hours: 120
+  maintenance_interval_jobs: 80
+  maintenance_interval_filament_g: 4000
+  last_service_at: '2026-04-01'
+  next_service_due: '2026-06-01'
+  filament_sensor: true
+  probe: true
+  webcam_expected: true
+  safe_nozzle_max_c: 300
+  safe_bed_max_c: 120
+- id: printer-5
+  name: Printer 5
+  base_url: http://127.0.0.1:7129
+  ws_url: ws://127.0.0.1:7129/websocket
+  fluidd_url: http://printer-host:4412
+  auth_mode: trusted_local
+  tags:
+  - printer-host
+  - core
+  - f446
+  compatibility_profile: octopus-350-nozzle-06
+  nozzle_diameter_mm: 0.6
+  build_volume:
+    x: 350
+    y: 350
+    z: 400
+  supported_materials:
+  - PLA
+  - PETG
+  - ABS
+  current_material: PLA
+  current_spool_name: Generic PLA White
+  spool_remaining_g: 750
+  maintenance_state: production
+  maintenance_interval_hours: 120
+  maintenance_interval_jobs: 80
+  maintenance_interval_filament_g: 4000
+  last_service_at: '2026-04-01'
+  next_service_due: '2026-06-01'
+  filament_sensor: true
+  probe: true
+  webcam_expected: true
+  safe_nozzle_max_c: 300
+  safe_bed_max_c: 120
+- id: printer-6
+  name: Printer 6
+  base_url: http://127.0.0.1:7130
+  ws_url: ws://127.0.0.1:7130/websocket
+  fluidd_url: http://printer-host:4413
+  auth_mode: trusted_local
+  tags:
+  - printer-host
+  - core
+  - f446
+  compatibility_profile: octopus-350-nozzle-06
+  nozzle_diameter_mm: 0.6
+  build_volume:
+    x: 350
+    y: 350
+    z: 400
+  supported_materials:
+  - PLA
+  - PETG
+  - ABS
+  current_material: PLA
+  current_spool_name: Generic PLA White
+  spool_remaining_g: 750
+  maintenance_state: production
+  maintenance_interval_hours: 120
+  maintenance_interval_jobs: 80
+  maintenance_interval_filament_g: 4000
+  last_service_at: '2026-04-01'
+  next_service_due: '2026-06-01'
+  filament_sensor: true
+  probe: true
+  webcam_expected: true
+  safe_nozzle_max_c: 300
+  safe_bed_max_c: 120
+- id: printer-7
+  name: Printer 7
+  base_url: http://127.0.0.1:7131
+  ws_url: ws://127.0.0.1:7131/websocket
+  fluidd_url: http://printer-host:4414
+  auth_mode: trusted_local
+  tags:
+  - printer-host
+  - core
+  - f446
+  compatibility_profile: octopus-350-nozzle-06
+  nozzle_diameter_mm: 0.6
+  build_volume:
+    x: 350
+    y: 350
+    z: 400
+  supported_materials:
+  - PLA
+  - PETG
+  - ABS
+  current_material: PLA
+  current_spool_name: Generic PLA White
+  spool_remaining_g: 750
+  maintenance_state: production
+  maintenance_interval_hours: 120
+  maintenance_interval_jobs: 80
+  maintenance_interval_filament_g: 4000
+  last_service_at: '2026-04-01'
+  next_service_due: '2026-06-01'
+  filament_sensor: true
+  probe: true
+  webcam_expected: true
+  safe_nozzle_max_c: 300
+  safe_bed_max_c: 120
+- id: cnc-demo-1
+  name: Shapeoko 5 Pro (demo)
+  base_url: http://127.0.0.1:59999
+  machine_type: cnc_router
+  protocol: grbl
+  auth_mode: trusted_local
+  tags:
+  - demo
+  - cnc
+  spindle_rpm_max: 30000
+  feed_rate_mm_min: 5000.0
+  webcam_expected: false
+  enabled: true
+  notes:
+  - 'Demo CNC router — surfaces the CNC metrics tab. Offline (no hardware); demo
+    telemetry is synthetic via backend/scripts/seed_cnc_demo.py.'
+dashboard_settings:
+  card_layout: horizontal
+  card_density: comfortable
+  show_card_preview: true
+  show_metrics_strip: true
+  show_empty_capability_tiles: false
+  default_drawer_section: overview
+  metrics_history_limit: 50
+  metrics_refresh_seconds: 15
+material_presets: []

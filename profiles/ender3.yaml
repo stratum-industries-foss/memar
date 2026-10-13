@@ -1,0 +1,52 @@
+# Ender 3 — Stock Cartesian (bed-slinger, no probe)
+# Source: Creality Ender 3 official specs + community defaults
+machine_type: fdm
+protocol: moonraker  # Klipper on SKR Mini E3
+nozzle_diameter_mm: 0.4
+filament_diameter_mm: 1.75
+build_volume:
+  x: 235.0
+  y: 235.0
+  z: 250.0
+
+# No probe; manual leveling or BLTouch retrofit possible
+probe: false
+filament_sensor: true
+webcam_expected: true
+
+# Temperature limits (Creality stock, no PT100)
+safe_nozzle_max_c: 250.0  # Heater limit
+safe_bed_max_c: 100.0
+
+# Maintenance
+maintenance_interval_hours: 100
+maintenance_interval_jobs: 50
+maintenance_interval_filament_g: 5000
+
+# Capabilities & protocol-specific macros
+capabilities:
+  quad_gantry_level: false  # No moving gantry
+  mesh_bed_leveling: false  # No probe
+  manual_probe_required: true
+
+start_gcode: |
+  G28
+  BED_MESH_CLEAR
+  G29  ; Manual mesh if leveled before print
+  G92 E0
+  G1 X10 Y10 Z0.3 F5000.0
+  G1 X100.0 Y10 Z0.3 F1500.0 E15
+  G1 X100.0 Y10.3 Z0.3 F5000.0
+  G92 E0
+
+end_gcode: |
+  M104 S0
+  M140 S0
+  G28 X Y
+  G1 Z245
+  M84
+
+notes:
+  - No BLTouch or ABL probe on stock unit
+  - Manual bed leveling required before first layer
+  - Klipper/Moonraker recommended for reliability

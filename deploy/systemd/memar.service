@@ -1,0 +1,24 @@
+[Unit]
+Description=MEMAR API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=memar
+Group=memar
+WorkingDirectory=/opt/memar/current/backend
+EnvironmentFile=/etc/memar.env
+ExecStart=/opt/memar/current/backend/.venv/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port 9000
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/opt/memar /var/lib/memar
+MemoryMax=768M
+TasksMax=512
+
+[Install]
+WantedBy=multi-user.target

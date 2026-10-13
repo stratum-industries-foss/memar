@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — MEMAR</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 24px; color: #1a1a1a; line-height: 1.6; }
+    h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+    h2 { font-size: 1.1rem; font-weight: 600; margin-top: 2rem; color: #111; }
+    .meta { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+    a { color: #2563eb; }
+    ul { padding-left: 1.5rem; }
+    li { margin-bottom: 0.4rem; }
+    .back { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: #2563eb; text-decoration: none; }
+    .back:hover { text-decoration: underline; }
+    hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <a class="back" href="/">← Back to MEMAR</a>
+  <h1>Privacy Policy</h1>
+  <p class="meta">Stratum Industries · Effective date: July 1, 2026 · Contact: <a href="mailto:info@stratum.industries">info@stratum.industries</a></p>
+
+  <h2>1. What MEMAR is</h2>
+  <p>MEMAR is self-hosted fleet monitoring software. You deploy it on your own infrastructure. Your data never leaves your server unless you explicitly configure an integration that sends data outward.</p>
+
+  <h2>2. Data we collect and where it lives</h2>
+  <p>All of the following data is stored exclusively on <strong>your</strong> server in the SQLite database at the path you configure (<code>MEMAR_DATA_DIR</code>):</p>
+  <ul>
+    <li><strong>Account data:</strong> username, hashed password, role, session tokens.</li>
+    <li><strong>Fleet data:</strong> printer/machine names, configurations, telemetry samples (temperatures, job progress, status), job logs, CNC metrics, anomaly records.</li>
+    <li><strong>Audit log:</strong> admin actions with timestamps.</li>
+    <li><strong>License record:</strong> your license key, tier, expiry, Stripe customer ID (opaque identifier — no payment card data).</li>
+    <li><strong>Webhook configs:</strong> outbound webhook URLs you configure.</li>
+  </ul>
+  <p>We do not have access to any of this data. We do not run a cloud backend. We do not collect telemetry or analytics.</p>
+
+  <h2>3. Third-party services</h2>
+  <p>MEMAR integrates with the following third parties <em>only when you configure them or purchase a license</em>:</p>
+  <ul>
+    <li><strong>Stripe</strong> — payment processing for license purchases. Stripe receives your email address and payment information directly. See <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>. We receive a Stripe Customer ID and subscription status; we never see your card number.</li>
+    <li><strong>Cloudflare Workers</strong> — our license fulfillment worker receives the Stripe checkout event and emails you your license key. The worker does not store your data beyond the immediate transaction.</li>
+    <li><strong>Resend</strong> (email delivery) — used by our Cloudflare Worker to send license keys and billing receipts to your email address. See <a href="https://resend.com/privacy" target="_blank" rel="noopener">resend.com/privacy</a>.</li>
+    <li><strong>ntfy / Slack / Telegram / webhooks</strong> — only if you configure outbound notifications. Data sent is alert content you choose to route (machine name, status). We have no visibility into your notification config or the data sent.</li>
+    <li><strong>Your own SMTP server</strong> — only if you configure <code>MEMAR_SMTP_*</code>. We have no access.</li>
+  </ul>
+  <p>No advertising networks, no analytics SDKs, no session recording, no CDN that logs visitors.</p>
+
+  <h2>4. Cookies and local storage</h2>
+  <p>MEMAR uses a single <code>HttpOnly</code> cookie (<code>memar_refresh</code>) to maintain your login session. No tracking cookies. No third-party cookies.</p>
+
+  <h2>5. Your rights (GDPR / CCPA)</h2>
+  <p>Because your data lives on your server, you control it completely:</p>
+  <ul>
+    <li><strong>Access:</strong> all data is in the SQLite file you own.</li>
+    <li><strong>Deletion:</strong> delete the database file. Your account is gone.</li>
+    <li><strong>Portability:</strong> use <code>sqlite3</code> to export any table.</li>
+    <li><strong>Correction:</strong> edit records directly or via the admin UI.</li>
+  </ul>
+  <p>For billing-related data held by Stripe (invoices, payment methods), contact <a href="mailto:info@stratum.industries">info@stratum.industries</a> and we will initiate a Stripe data deletion request on your behalf.</p>
+
+  <h2>6. Data retention</h2>
+  <p>You control retention. MEMAR does not delete your data on any schedule. You may prune the database, run <code>scripts/backup.sh</code>, or configure your own retention policy.</p>
+
+  <h2>7. Security</h2>
+  <p>MEMAR uses bcrypt password hashing, JWT authentication with rotating refresh tokens, <code>HttpOnly</code> session cookies, and security headers (HSTS, CSP, X-Frame-Options). Network-level security (TLS, firewall) is your responsibility as the operator.</p>
+
+  <h2>8. Children</h2>
+  <p>MEMAR is industrial fleet monitoring software intended for professional use. It is not directed at children under 13.</p>
+
+  <h2>9. Changes to this policy</h2>
+  <p>We will update the effective date above when this policy changes. Material changes will be announced via the MEMAR GitHub releases page.</p>
+
+  <h2>10. Contact</h2>
+  <p><a href="mailto:info@stratum.industries">info@stratum.industries</a></p>
+
+  <hr>
+  <p style="font-size:0.85rem;color:#666;">MEMAR is open-source software licensed under the GNU AGPL v3. Source: <a href="https://github.com/stratum-industries-foss/memar" target="_blank" rel="noopener">github.com/stratum-industries-foss/memar</a></p>
+</body>
+</html>

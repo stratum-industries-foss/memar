@@ -1,0 +1,61 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      spacing: {
+        'xs': 'var(--spacing-xs)',
+        'sm': 'var(--spacing-sm)',
+        'md': 'var(--spacing-md)',
+        'lg': 'var(--spacing-lg)',
+        'xl': 'var(--spacing-xl)',
+        '2xl': 'var(--spacing-2xl)',
+        '3xl': 'var(--spacing-3xl)',
+        '4xl': 'var(--spacing-4xl)',
+        '5xl': 'var(--spacing-5xl)',
+      },
+      fontSize: {
+        'h1': ['var(--font-size-h1)', { lineHeight: 'var(--line-height-h1)', fontWeight: 'var(--font-weight-h1)' }],
+        'h2': ['var(--font-size-h2)', { lineHeight: 'var(--line-height-h2)', fontWeight: 'var(--font-weight-h2)' }],
+        'h3': ['var(--font-size-h3)', { lineHeight: 'var(--line-height-h3)', fontWeight: 'var(--font-weight-h3)' }],
+        'h4': ['var(--font-size-h4)', { lineHeight: 'var(--line-height-h4)', fontWeight: 'var(--font-weight-h4)' }],
+        'body-lg': ['var(--font-size-body-lg)', { lineHeight: 'var(--line-height-body-lg)', fontWeight: 'var(--font-weight-body-lg)' }],
+        'body-md': ['var(--font-size-body-md)', { lineHeight: 'var(--line-height-body-md)', fontWeight: 'var(--font-weight-body-md)' }],
+        'body-sm': ['var(--font-size-body-sm)', { lineHeight: 'var(--line-height-body-sm)', fontWeight: 'var(--font-weight-body-sm)' }],
+      },
+      boxShadow: {
+        'subtle': 'var(--shadow-subtle)',
+        'elevated': 'var(--shadow-elevated)',
+        'overlay': 'var(--shadow-overlay)',
+      },
+      colors: {
+        'accent': 'var(--accent-solid)',
+        'accent-hover': 'var(--accent-solid-hover)',
+        'success': 'var(--color-success)',
+        'warning': 'var(--color-warning)',
+        'danger': 'var(--color-danger)',
+        'info': 'var(--color-info)',
+        'text-primary': 'var(--text-primary)',
+        'text-secondary': 'var(--text-secondary)',
+        'text-disabled': 'var(--text-disabled)',
+        'surface-base': 'var(--surface-base)',
+        'surface-l1': 'var(--surface-l1)',
+        'surface-l2': 'var(--surface-l2)',
+        'border-subtle': 'var(--border-subtle)',
+        'border-default': 'var(--border-default)',
+        'border-strong': 'var(--border-strong)',
+      },
+      borderRadius: {
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+      },
+    },
+  },
+  plugins: [],
+}

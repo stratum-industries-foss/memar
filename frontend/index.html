@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icon-48.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta name="description" content="MEMAR: Self-hosted equipment fleet monitoring dashboard for 3D printers, CNC machines, and manufacturing equipment." />
+    <meta name="keywords" content="fleet management, equipment monitoring, OEE tracking, manufacturing, self-hosted" />
+    <meta property="og:title" content="MEMAR Fleet Monitor" />
+    <meta property="og:description" content="Self-hosted equipment fleet monitoring dashboard" />
+    <meta property="og:type" content="website" />
+    <title>MEMAR</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "MEMAR",
+      "alternateName": "MEMAR Fleet Monitor",
+      "description": "Self-hosted equipment fleet monitoring dashboard for 3D printers, CNC machines, and manufacturing equipment",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Linux, macOS, Windows",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "sameAs": "https://github.com/stratum-industries-foss/memar"
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

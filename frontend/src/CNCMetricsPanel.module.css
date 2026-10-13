@@ -1,0 +1,194 @@
+/* ── Phase 3c: 40/60 left-right split layout ── */
+
+@keyframes scaleInCncCard {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cnc-metrics-container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr; /* 40/60 split */
+  gap: 2rem;
+  align-items: start;
+}
+
+.cnc-left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.metrics-controls {
+  display: flex;
+  gap: 1rem;
+  margin: 0 0 0.5rem;
+  align-items: center;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2×2 gauge layout */
+  gap: 1rem;
+  margin: 0;
+}
+
+.metric-gauge {
+  padding: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+}
+
+.metric-gauge label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.gauge-bar {
+  height: 24px;
+  background: var(--surface-l2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.gauge-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-success), var(--accent-solid));
+  transition: width 0.3s ease;
+}
+
+.gauge-value {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.metrics-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.stat-card {
+  padding: 1rem;
+  background: var(--surface-l1);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  text-align: center;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  opacity: 0;
+  animation: scaleInCncCard 0.3s ease-out forwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0ms; }
+.stat-card:nth-child(2) { animation-delay: 60ms; }
+.stat-card:nth-child(3) { animation-delay: 120ms; }
+.stat-card:nth-child(4) { animation-delay: 180ms; }
+.stat-card:nth-child(5) { animation-delay: 240ms; }
+
+/* §31 Motion: hover only on pointer devices */
+@media (hover: hover) {
+  .stat-card:hover {
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+/* §31 Motion: prefers-reduced-motion fallback */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.stat-card h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.metrics-alerts {
+  margin: 1rem 0;
+}
+
+.alert-low,
+.alert-high {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 2px;
+  font-size: 0.9rem;
+}
+
+.alert-low {
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+}
+
+.alert-high {
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+}
+
+/* 3D viewer panel — right column, full height */
+.cnc-3d-viewer {
+  background: var(--surface-l1);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cnc-3d-viewer-placeholder {
+  color: var(--text-disabled);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* ── Responsive collapse ── */
+
+/* Tablet (≤1200px): revert to single column, viewer takes full width */
+@media (max-width: 1200px) {
+  .cnc-metrics-container {
+    grid-template-columns: 1fr;
+  }
+
+  .cnc-left-panel {
+    gap: 1rem;
+  }
+}
+
+/* Mobile (≤720px): tight spacing, gauges stay 2×2 */
+@media (max-width: 720px) {
+  .cnc-metrics-container {
+    gap: 1rem;
+  }
+
+  .cnc-left-panel {
+    gap: 0.75rem;
+  }
+
+  .metrics-grid {
+    gap: 0.75rem;
+  }
+}

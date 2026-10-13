@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEMAR — Self-Hosted Equipment Fleet Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a0;
+            --accent-green: #00c853;
+            --accent-red: #ff5252;
+            --accent-yellow: #ffd740;
+            --accent-blue: #448aff;
+            --border-color: #2a2a2a;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto Mono', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px rgba(0, 200, 83, 0.3); }
+            50% { text-shadow: 0 0 20px rgba(0, 200, 83, 0.6); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -3px;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        h1 .accent {
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+        }
+
+        h2 .accent {
+            color: var(--accent-green);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 200, 83, 0.1);
+            padding: 1.2rem 2rem;
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            letter-spacing: 2px;
+            animation: slideInRight 0.6s ease-out;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all var(--transition);
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        nav a:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-green);
+            transition: width var(--transition);
+        }
+
+        nav a:hover {
+            color: var(--accent-green);
+        }
+
+        nav a:hover:after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            color: var(--bg-primary) !important;
+            padding: 0.7rem 2rem;
+            border-radius: 8px;
+            font-weight: 700;
+            transition: all var(--transition);
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.2);
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 200, 83, 0.4);
+        }
+
+        .nav-cta:after {
+            display: none;
+        }
+
+        /* Containers */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        section:nth-child(even) {
+            background: linear-gradient(180deg, rgba(0, 200, 83, 0.02) 0%, rgba(68, 138, 255, 0.02) 100%);
+        }
+
+        /* Diagonal divider */
+        section:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: inherit;
+            clip-path: polygon(0 0, 100% 20%, 100% 100%, 0 100%);
+            pointer-events: none;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 8rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(0, 200, 83, 0.08) 0%, rgba(68, 138, 255, 0.08) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 200, 83, 0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(68, 138, 255, 0.1) 0%, transparent 70%);
+            animation: float 8s ease-in-out infinite reverse;
+            z-index: 0;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.8s ease-out 0.1s both;
+        }
+
+        .hero p {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left var(--transition);
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            color: var(--bg-primary);
+            box-shadow: 0 8px 20px rgba(0, 200, 83, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0, 200, 83, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-green);
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0, 200, 83, 0.4);
+        }
+
+        .hero-visual {
+            background: linear-gradient(135deg, rgba(0, 200, 83, 0.1), rgba(68, 138, 255, 0.1));
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            margin-top: 2rem;
+            min-height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 2.5rem;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.1s; border-left-color: var(--accent-green); }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; border-left-color: var(--accent-blue); }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; border-left-color: var(--accent-red); }
+        .feature-card:nth-child(4) { animation-delay: 0.1s; border-left-color: var(--accent-yellow); }
+        .feature-card:nth-child(5) { animation-delay: 0.2s; border-left-color: var(--accent-green); }
+        .feature-card:nth-child(6) { animation-delay: 0.3s; border-left-color: var(--accent-blue); }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 200, 83, 0.1), transparent);
+            opacity: 0;
+            transition: opacity var(--transition);
+            z-index: 0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 200, 83, 0.2);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            filter: drop-shadow(0 4px 8px rgba(0, 200, 83, 0.2));
+        }
+
+        .feature-card h3 {
+            margin-top: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Pricing */
+        .pricing-section {
+            position: relative;
+        }
+
+        .pricing-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .pricing-card:nth-child(1) { animation-delay: 0.1s; }
+        .pricing-card:nth-child(2) { animation-delay: 0.2s; }
+        .pricing-card:nth-child(3) { animation-delay: 0.3s; }
+        .pricing-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .pricing-card.featured {
+            border: 3px solid var(--accent-green);
+            transform: scale(1.08);
+            box-shadow: 0 20px 60px rgba(0, 200, 83, 0.25);
+        }
+
+        .pricing-card.featured::before {
+            content: 'POPULAR';
+            position: absolute;
+            top: -35px;
+            right: -45px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            color: var(--bg-primary);
+            padding: 0.5rem 3rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            transform: rotate(45deg);
+            box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+        }
+
+        .pricing-card:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 200, 83, 0.2);
+        }
+
+        .pricing-card.featured:hover {
+            box-shadow: 0 24px 70px rgba(0, 200, 83, 0.35);
+            transform: scale(1.08) translateY(-8px);
+        }
+
+        .pricing-tier {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+        }
+
+        .pricing-price {
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 1.5rem 0;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+        }
+
+        .pricing-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .pricing-list {
+            text-align: left;
+            margin-bottom: 2rem;
+            list-style: none;
+        }
+
+        .pricing-list li {
+            padding: 0.8rem 0;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: color var(--transition);
+        }
+
+        .pricing-list li:hover {
+            color: var(--text-primary);
+        }
+
+        .pricing-list li:before {
+            content: "✓";
+            color: var(--accent-green);
+            font-weight: 900;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        /* Badges */
+        .badges {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 3rem 0;
+            animation: fadeInUp 0.8s ease-out 0.5s both;
+        }
+
+        .badge {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-green);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all var(--transition);
+            font-weight: 600;
+        }
+
+        .badge:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            transform: scale(1.05);
+        }
+
+        .badge strong {
+            color: var(--accent-green);
+        }
+
+        .badge:hover strong {
+            color: var(--bg-primary);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+            border-radius: 16px;
+            padding: 5rem 2rem;
+            text-align: center;
+            margin-top: 4rem;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .cta-section .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-section h2 {
+            color: var(--bg-primary);
+            margin-bottom: 1rem;
+            font-size: 2.8rem;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            color: rgba(10, 10, 10, 0.9);
+            font-weight: 500;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-buttons .btn {
+            box-shadow: 0 8px 20px rgba(10, 10, 10, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        footer a {
+            color: var(--accent-green);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all var(--transition);
+        }
+
+        footer a:hover {
+            color: var(--accent-blue);
+            text-decoration: underline;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+                letter-spacing: -1px;
+            }
+
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1.15rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+                display: none;
+            }
+
+            nav.open ul {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .pricing-card.featured:hover {
+                transform: translateY(-8px);
+            }
+
+            .badges {
+                gap: 0.75rem;
+            }
+
+            .badge {
+                font-size: 0.85rem;
+                padding: 0.6rem 1.2rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            h3 {
+                font-size: 1.25rem;
+            }
+
+            .cta-section {
+                padding: 3rem 1.5rem;
+            }
+
+            .cta-section h2 {
+                font-size: 1.8rem;
+            }
+
+            .cta-section p {
+                font-size: 1.05rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 4rem 0;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-green);
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="#" class="logo">⚡ MEMAR</a>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#quick-start">Docs</a></li>
+                <li><a href="https://github.com/stratum-industries-foss/memar" class="nav-cta">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Unified <span class="accent">Fleet Control</span></h1>
+            <p>Monitor 3D printers, CNC machines, and any equipment in real-time. OEE metrics, floor plans, webhooks—all self-hosted, no vendor lock-in.</p>
+            <div class="hero-buttons">
+                <a href="#quick-start" class="btn btn-primary">Deploy Now</a>
+                <a href="https://github.com/stratum-industries-foss/memar" class="btn btn-secondary">View on GitHub</a>
+            </div>
+
+            <div class="badges">
+                <div class="badge">🆓 <strong>MIT License</strong></div>
+                <div class="badge">🐳 <strong>Docker Ready</strong></div>
+                <div class="badge">⚡ <strong>Self-Hosted</strong></div>
+                <div class="badge">🔧 <strong>REST API</strong></div>
+                <div class="badge">📊 <strong>OEE Metrics</strong></div>
+            </div>
+
+            <div class="hero-visual">
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 2rem;">
+                    <!-- Floor Plan Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; flex: 1; align-content: center; justify-items: center;">
+                        <!-- Printer 1 - Printing -->
+                        <div style="width: 70px; height: 70px; background: #00c853; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4); transition: all 0.3s ease; cursor: grab; font-weight: 700; color: white; font-size: 0.75rem; text-align: center; padding: 0.5rem;" title="Printer 1 - Printing">P1</div>
+                        <!-- Printer 2 - Error -->
+                        <div style="width: 70px; height: 70px; background: #ff5252; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255, 82, 82, 0.4); transition: all 0.3s ease; cursor: grab; font-weight: 700; color: white; font-size: 0.75rem; text-align: center; padding: 0.5rem;" title="Printer 2 - Error">P2</div>
+                        <!-- Printer 3 - Paused -->
+                        <div style="width: 70px; height: 70px; background: #ffd740; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255, 215, 64, 0.4); transition: all 0.3s ease; cursor: grab; font-weight: 700; color: #333; font-size: 0.75rem; text-align: center; padding: 0.5rem;" title="Printer 3 - Paused">P3</div>
+                        <!-- Printer 4 - Idle -->
+                        <div style="width: 70px; height: 70px; background: #448aff; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(68, 138, 255, 0.4); transition: all 0.3s ease; cursor: grab; font-weight: 700; color: white; font-size: 0.75rem; text-align: center; padding: 0.5rem;" title="Printer 4 - Idle">P4</div>
+                        <!-- Printer 5 - Printing -->
+                        <div style="width: 70px; height: 70px; background: #00c853; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4); transition: all 0.3s ease; cursor: grab; font-weight: 700; color: white; font-size: 0.75rem; text-align: center; padding: 0.5rem;" title="Printer 5 - Printing">P5</div>
+                        <!-- Printer 6 - Offline -->
+                        <div style="width: 70px; height: 70px; background: #555; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(85, 85, 85, 0.4); transition: all 0.3s ease; cursor: grab; font-weight: 700; color: white; font-size: 0.75rem; text-align: center; padding: 0.5rem;" title="Printer 6 - Offline">P6</div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 20px; height: 20px; background: #00c853; border-radius: 4px;"></div>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">Printing</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 20px; height: 20px; background: #ff5252; border-radius: 4px;"></div>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">Error</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 20px; height: 20px; background: #ffd740; border-radius: 4px;"></div>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">Paused</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 20px; height: 20px; background: #448aff; border-radius: 4px;"></div>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">Idle</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 20px; height: 20px; background: #555; border-radius: 4px;"></div>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary);">Offline</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="container">
+            <h2><span class="accent">Key</span> Features</h2>
+            <p style="text-align: center; margin-bottom: 2rem;">Everything you need to manage equipment fleets at scale</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>OEE Metrics</h3>
+                    <p>Availability × Performance × Quality. Real-time insights into equipment efficiency. Identify bottlenecks instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📐</div>
+                    <h3>Interactive Floor Plan</h3>
+                    <p>Drag-drop device positioning with live status visualization. See your entire operation at a glance. Manual or agentic layout.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Event Webhooks</h3>
+                    <p>Real-time event dispatch: `printer.error`, `printer.complete`, `printer.offline`. React instantly to failures.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Role-Based Access</h3>
+                    <p>Admin, operator, viewer roles. JWT auth with encrypted offline licensing. Multi-user management built-in.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3>Multi-Protocol</h3>
+                    <p>Klipper, Bambu Labs, Prusa, GRBL, OPC-UA, MQTT, and generic REST adapters. Connect anything.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏗️</div>
+                    <h3>Extensible Architecture</h3>
+                    <p>Build custom adapters for proprietary equipment. Adapter ecosystem for any REST API or MQTT source.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <h2><span class="accent">Simple</span> Pricing</h2>
+            <div class="pricing-intro">
+                <p style="font-size: 1.15rem; text-align: center;">Free to self-host. Optional paid tiers unlock more devices. Every tier includes every feature.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-tier">🆓 Free</div>
+                    <div class="pricing-desc">Get started</div>
+                    <div class="pricing-price">$0<span style="font-size: 0.5em; color: var(--text-secondary); font-weight: 400;">/mo</span></div>
+                    <ul class="pricing-list">
+                        <li>Up to 5 devices</li>
+                        <li>Every feature included</li>
+                        <li>Self-hosted, MIT licensed</li>
+                    </ul>
+                    <a href="https://github.com/stratum-industries-foss/memar" class="btn btn-secondary" target="_blank" rel="noopener">Deploy free</a>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-tier">🔨 Maker</div>
+                    <div class="pricing-desc">Personal &amp; small shops</div>
+                    <div class="pricing-price">$19<span style="font-size: 0.5em; color: var(--text-secondary); font-weight: 400;">/mo</span></div>
+                    <ul class="pricing-list">
+                        <li>Up to 15 devices</li>
+                        <li>Every feature included</li>
+                        <li>Flat-rate, no per-machine fees</li>
+                    </ul>
+                    <a href="https://buy.stripe.com/00waEXdsR6k6awS6Fw1B600" class="btn btn-secondary" target="_blank" rel="noopener">Start Maker</a>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="pricing-tier">⚡ Pro</div>
+                    <div class="pricing-desc">Growing farms</div>
+                    <div class="pricing-price">$49<span style="font-size: 0.5em; color: var(--text-secondary); font-weight: 400;">/mo</span></div>
+                    <ul class="pricing-list">
+                        <li>Up to 40 devices</li>
+                        <li>Every feature included</li>
+                        <li>Flat-rate, no per-machine fees</li>
+                    </ul>
+                    <a href="https://buy.stripe.com/7sY9AT4WlcIu5cyd3U1B601" class="btn btn-primary" target="_blank" rel="noopener">Start Pro</a>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-tier">🏭 Farm</div>
+                    <div class="pricing-desc">Large scale</div>
+                    <div class="pricing-price">$199<span style="font-size: 0.5em; color: var(--text-secondary); font-weight: 400;">/mo</span></div>
+                    <ul class="pricing-list">
+                        <li>Up to 150 devices</li>
+                        <li>Every feature included</li>
+                        <li>Flat-rate, no per-machine fees</li>
+                    </ul>
+                    <a href="https://buy.stripe.com/00wcN560pgYK5cy7JA1B602" class="btn btn-secondary" target="_blank" rel="noopener">Start Farm</a>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-tier">🚀 Scale</div>
+                    <div class="pricing-desc">Enterprise fleets</div>
+                    <div class="pricing-price">$499<span style="font-size: 0.5em; color: var(--text-secondary); font-weight: 400;">/mo</span></div>
+                    <ul class="pricing-list">
+                        <li>Up to 500 devices</li>
+                        <li>Every feature included</li>
+                        <li>Flat-rate, no per-machine fees</li>
+                    </ul>
+                    <a href="https://buy.stripe.com/4gM9ATdsR23Q34qaVM1B603" class="btn btn-secondary" target="_blank" rel="noopener">Start Scale</a>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 3rem; color: var(--text-secondary); font-size: 1rem;">All tiers are self-hosted on your own hardware. No cloud dependency, no vendor lock-in.</p>
+        </div>
+    </section>
+
+    <section id="quick-start">
+        <div class="container">
+            <h2><span class="accent">Get</span> Started</h2>
+            <p style="margin-bottom: 2rem;">Self-host MEMAR locally in under 5 minutes with Docker Compose.</p>
+            <div style="background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 12px; padding: 2.5rem; overflow-x: auto; margin: 2rem 0; position: relative;">
+                <div style="position: absolute; top: 1rem; right: 1rem; background: var(--accent-green); color: var(--bg-primary); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700;">COPY</div>
+                <pre style="color: var(--accent-green); font-family: 'Roboto Mono', monospace; line-height: 1.6; font-size: 0.95rem; margin: 0;"><code>$ git clone https://github.com/stratum-industries-foss/memar.git
+$ cd memar
+$ docker-compose up -d
+
+<span style="color: var(--text-secondary);"># Dashboard at http://localhost:8000
+# Login with 'admin' / password in logs</span></code></pre>
+            </div>
+            <p style="margin-top: 2rem;">
+                <strong style="color: var(--text-primary);">Full documentation:</strong> Check the <a href="https://github.com/stratum-industries-foss/memar#readme" style="color: var(--accent-green); text-decoration: none; font-weight: 600;">GitHub README</a> for adapters, API docs, and production deployment.
+            </p>
+        </div>
+    </section>
+
+    <section>
+        <div class="cta-section">
+            <div class="container">
+                <h2>Ready to take control?</h2>
+                <p>MEMAR is free and open source. Deploy it yourself, join the community, or let us help.</p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/stratum-industries-foss/memar" class="btn btn-primary">Deploy Now</a>
+                    <a href="https://github.com/stratum-industries-foss/memar/discussions" class="btn btn-secondary">Get Help</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p><strong style="color: var(--text-primary);">MEMAR</strong> — Mesh Equipment Monitoring, Analytics & Rendering</p>
+            <p style="margin-top: 1rem; margin-bottom: 0;">
+                <a href="https://github.com/stratum-industries-foss/memar">GitHub</a> •
+                <a href="https://github.com/stratum-industries-foss/memar/blob/main/LICENSE">MIT License</a> •
+                <a href="https://github.com/stratum-industries-foss/memar/issues">Issues</a> •
+                <a href="https://github.com/stratum-industries-foss/memar/discussions">Discussions</a>
+            </p>
+            <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-secondary);">Built with ❤️ for operators and farm managers. Part of Stratum Industries.</p>
+        </div>
+    </footer>
+</body>
+</html>

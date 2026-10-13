@@ -1,0 +1,12 @@
+# Optional features, install manually with pip.
+# These are soft dependencies: MEMAR runs without them but the relevant features will be disabled.
+#
+#   aiomqtt   — Bambu Lab MQTT printer integration (requires broker access)
+#   slowapi   — per-IP rate limiting on auth endpoints
+#   opencv-python, pillow, numpy — PA calibration vision analysis
+#
+aiomqtt>=0.3.0
+slowapi>=0.1.9
+opencv-python>=4.8.0
+pillow>=10.0.0
+numpy>=1.24.0

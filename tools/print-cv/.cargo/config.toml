@@ -1,0 +1,2 @@
+# Platform-specific linker settings can be added here if needed.
+# See: https://doc.rust-lang.org/cargo/reference/config.html

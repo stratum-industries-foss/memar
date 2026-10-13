@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# License keys (PRIVATE - NEVER COMMIT)
+tools/keygen/*.key
+tools/keygen/memar_private.key
+tools/keygen/memar_public.key
+
+# Environment
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+frontend_dist/
+dist/
+build/
+
+# OS
+.DS_Store
+.venv
+logs/
+backend/.venv/
+config/devices.yaml
+backend/config/devices.yaml
+*.bak-*
+
+# Frontend build + deps
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Playwright e2e output
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+
+# Runtime data (never commit user data)
+data/
+backend/data/
+
+# Internal / private business docs (NEVER push to public GitHub)
+*_INTERNAL.md
+
+# Internal planning docs (not published)
+QUICKWINS_*.md
+test_summary.md
+dogfood-output/
+*.bak
+.coordination-note.md
+.claude/
+
+# Internal / private business docs (NEVER push to public GitHub) — surfaced 2026-08-07 after docs/internal/ was untracked
+docs/internal/B2B_ORDER_FORM_MSA.md
+docs/internal/B2B_OUTREACH_TEMPLATES.md
+docs/internal/B2B_SALES_SHEET.md
+docs/internal/INFLUENCER_LIST.md
+
+
+# Real environment files hold secrets; never commit them (use the .example files)
+deploy/systemd/memar.env
+deploy/systemd/farm-dashboard.env
+
+# internal material never ships publicly
+docs/internal/
+frontend/.lighthouseci/

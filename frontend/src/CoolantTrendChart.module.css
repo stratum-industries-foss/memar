@@ -1,0 +1,142 @@
+.coolant-trend-container {
+  padding: 1.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-l1);
+}
+
+.coolant-trend-container h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.coolant-trend-chart-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.coolant-trend-svg {
+  width: 100%;
+  height: auto;
+  max-width: 600px;
+}
+
+.trend-critical-zone {
+  fill: var(--color-danger);
+  opacity: 0.3;
+}
+
+.trend-grid-line {
+  stroke: var(--border-default);
+  stroke-width: 1;
+  stroke-dasharray: 4,4;
+}
+
+.trend-axis-line {
+  stroke: var(--text-primary);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.trend-axis-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.trend-axis-y-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+
+.trend-line {
+  stroke: var(--accent-solid);
+  stroke-width: 2;
+  fill: none;
+}
+
+.trend-area {
+  fill: var(--accent-solid);
+  opacity: 0.1;
+}
+
+.trend-point {
+  fill: var(--accent-solid);
+  r: 3;
+}
+
+.trend-point-hover {
+  fill: var(--color-warning);
+  r: 5;
+  stroke: var(--surface-l1);
+  stroke-width: 1.5;
+}
+
+.trend-tooltip {
+  position: absolute;
+  background: var(--surface-l1);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.trend-tooltip-value {
+  font-weight: bold;
+  color: var(--accent-solid);
+}
+
+.trend-interaction-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.coolant-trend-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.coolant-trend-error {
+  padding: 1.5rem;
+  border: 1px solid var(--color-danger);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+  font-size: 0.9rem;
+}
+
+.trend-legend {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.trend-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trend-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}

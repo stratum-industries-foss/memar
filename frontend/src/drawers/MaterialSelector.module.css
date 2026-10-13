@@ -1,0 +1,178 @@
+/**
+ * MaterialSelector — styling for material library and custom material management
+ */
+
+/* ===== Material Selector ===== */
+.material-selector {
+  margin: 1rem 0;
+}
+
+.material-library {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--surface-l1);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.material-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.material-card {
+  background: var(--surface-l1);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.material-card:hover {
+  background: var(--surface-l2);
+  border-color: var(--accent-solid);
+}
+
+.material-card:focus-within {
+  border-color: var(--accent-solid);
+  box-shadow: 0 0 0 2px rgba(var(--accent-solid-rgb), 0.1);
+}
+
+.material-color-swatch {
+  width: 100%;
+  height: 32px;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border-default);
+}
+
+.material-card-content {
+  flex: 1;
+}
+
+.material-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.material-description {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.material-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.material-specs > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+.spec-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.custom-form {
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.custom-form h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.custom-form input,
+.custom-form label {
+  display: block;
+}
+
+.custom-form input[type='text'],
+.custom-form input[type='number'],
+.custom-form input[type='color'] {
+  background: var(--surface-l1);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.custom-form input[type='text']:focus,
+.custom-form input[type='number']:focus,
+.custom-form input[type='color']:focus {
+  outline: 2px solid var(--accent-solid);
+  border-color: var(--accent-solid);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .material-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .material-specs {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .material-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Theme Support ===== */
+@media (prefers-color-scheme: dark) {
+  .material-card {
+    background: var(--surface-l1);
+  }
+
+  .custom-form {
+    background: var(--surface-base);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .material-card {
+    background: #fafafa;
+    border-color: #e0e0e0;
+  }
+
+  .material-card:hover {
+    background: #f5f5f5;
+  }
+
+  .custom-form {
+    background: #f5f5f5;
+  }
+
+  .custom-form input[type='text'],
+  .custom-form input[type='number'],
+  .custom-form input[type='color'] {
+    background: #fff;
+    border-color: #d0d0d0;
+  }
+}

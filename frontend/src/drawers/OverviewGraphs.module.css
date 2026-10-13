@@ -1,0 +1,119 @@
+/**
+ * OverviewGraphs — styling for charts and metrics visualization
+ */
+
+/* ===== Charts Container ===== */
+.graphs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.chart-section {
+  background: var(--surface-l1);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.chart-section h4 {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chart-label-sub {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.chart-loading {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.chart-error {
+  padding: 2rem 1rem;
+  background: var(--surface-base);
+  border-radius: 4px;
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  border-top: 2px solid var(--accent-solid);
+}
+
+.chart-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-default);
+  font-size: 0.9rem;
+}
+
+.stat-secondary {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .graphs-container {
+    gap: 1rem;
+  }
+
+  .chart-section {
+    padding: 0.75rem;
+  }
+
+  .chart-container {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .material-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-stats {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* ===== Theme Support ===== */
+@media (prefers-color-scheme: dark) {
+  .chart-section {
+    background: var(--surface-l1);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .chart-section {
+    background: #fafafa;
+    border-color: #e0e0e0;
+  }
+}

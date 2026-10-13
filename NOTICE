@@ -1,0 +1,18 @@
+MEMAR — Third-Party License Notice
+===================================
+
+The following dependencies are distributed with MEMAR under their respective licenses.
+All other runtime dependencies use MIT, BSD-2-Clause, Apache-2.0, or ISC licenses.
+
+asyncua (python-asyncua)
+  License: GNU Lesser General Public License v3 or later (LGPL-3.0+)
+  Source:  https://github.com/FreeOpcUa/python-asyncua
+  Used by: backend/app/opcua.py (OPC-UA protocol adapter)
+  Note:    asyncua is dynamically imported and can be replaced or omitted.
+           Users who need a strictly proprietary stack may substitute another
+           OPC-UA client library and remove asyncua from requirements.txt.
+
+JetBrains Mono font
+  License: SIL Open Font License 1.1 (OFL-1.1)
+  Source:  https://github.com/JetBrains/JetBrainsMono
+  Used by: frontend (bundled via @fontsource/jetbrains-mono)

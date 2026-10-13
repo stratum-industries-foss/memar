@@ -1,0 +1,282 @@
+.coolant-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg) 0;
+}
+
+/* ── Phase 3b: Mixed-cell asymmetric grid ── */
+
+/* Inner card grid: 33/33/67 layout with Card3 spanning 2 rows */
+.metric-grid-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  gap: 1.5rem;
+}
+
+.metric-card {
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+  background: var(--surface-l1);
+  box-shadow: var(--shadow-subtle);
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+/* §31 Motion: ease-out for hover; no scale on touch/mobile (handled via breakpoint) */
+@media (hover: hover) {
+  .metric-card:hover {
+    transform: scale(1.02) translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.metric-label {
+  font-size: var(--font-size-body-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-md);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+}
+
+.metric-unit {
+  font-size: var(--font-size-body-lg);
+  color: var(--text-secondary);
+  margin-left: var(--spacing-xs);
+}
+
+.metric-status {
+  font-size: var(--font-size-body-sm);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-top: var(--spacing-sm);
+}
+
+/* Status colors for PSI cards */
+.metric-card.critical {
+  border-top: 2px solid var(--accent-solid);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
+.metric-card.critical .metric-value {
+  color: var(--color-danger);
+}
+
+.metric-card.critical .metric-status {
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger);
+}
+
+.metric-card.warning {
+  border-top: 2px solid var(--accent-solid);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.metric-card.warning .metric-value {
+  color: var(--color-warning);
+}
+
+.metric-card.warning .metric-status {
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  color: var(--color-warning);
+}
+
+.metric-card.nominal {
+  border-top: 2px solid var(--accent-solid);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.metric-card.nominal .metric-value {
+  color: var(--color-success);
+}
+
+.metric-card.nominal .metric-status {
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  color: var(--color-success);
+}
+
+.metric-card.gray {
+  border-top: 2px solid var(--accent-solid);
+  background: var(--surface-l2);
+}
+
+.metric-card.gray .metric-value {
+  color: var(--text-disabled);
+}
+
+.metric-card.gray .metric-status {
+  background: var(--surface-l3);
+  color: var(--text-secondary);
+}
+
+/* Uptime-specific styling */
+.metric-card.excellent {
+  border-top: 2px solid var(--accent-solid);
+  background: color-mix(in srgb, var(--accent-solid) 12%, transparent);
+}
+
+.metric-card.excellent .metric-value {
+  color: var(--accent-solid);
+}
+
+.metric-card.excellent .metric-status {
+  background: color-mix(in srgb, var(--accent-solid) 20%, transparent);
+  color: var(--accent-solid);
+}
+
+.metric-card.good {
+  border-top: 2px solid var(--accent-solid);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.metric-card.good .metric-value {
+  color: var(--color-success);
+}
+
+.metric-card.good .metric-status {
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  color: var(--color-success);
+}
+
+.metric-card.fair {
+  border-top: 2px solid var(--accent-solid);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.metric-card.fair .metric-value {
+  color: var(--color-warning);
+}
+
+.metric-card.fair .metric-status {
+  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  color: var(--color-warning);
+}
+
+.metric-card.poor {
+  border-top: 2px solid var(--accent-solid);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
+.metric-card.poor .metric-value {
+  color: var(--color-danger);
+}
+
+.metric-card.poor .metric-status {
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger);
+}
+
+.metric-timestamp {
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-body-sm);
+  color: var(--text-disabled);
+}
+
+.metric-grid-container {
+  background: var(--surface-l1);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  border: 1px solid var(--border-default);
+}
+
+.metric-grid-title {
+  margin-top: 0;
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-h4);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ── Phase 3b: stagger animation on render ── */
+
+@keyframes scaleInCard {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Cards are hidden initially; animation fills forward to opacity 1 */
+.metric-grid-inner .metric-card {
+  opacity: 0;
+  animation: scaleInCard 0.3s ease-out forwards;
+}
+
+.metric-grid-inner .metric-card:nth-child(1) { animation-delay: 0ms; }
+.metric-grid-inner .metric-card:nth-child(2) { animation-delay: 60ms; }
+.metric-grid-inner .metric-card:nth-child(3) { animation-delay: 120ms; }
+.metric-grid-inner .metric-card:nth-child(4) { animation-delay: 180ms; }
+
+/* §31 Motion: prefers-reduced-motion fallback */
+@media (prefers-reduced-motion: reduce) {
+  .metric-grid-inner .metric-card {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Card 3 (max-psi): spans 2 rows for asymmetric weight */
+.metric-grid-inner .metric-card:nth-child(3) {
+  grid-row: 1 / 3;
+}
+
+/* Whitespace card (5th child) — negative-space placeholder on desktop */
+.metric-card-whitespace {
+  background: transparent;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
+  opacity: 0.4;
+  /* No animation — it's decorative */
+  animation: none !important;
+}
+
+/* ── Responsive collapse ── */
+
+/* Tablet (≤1200px): 2-column, card3 spans full width, whitespace hidden */
+@media (max-width: 1200px) {
+  .metric-grid-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metric-grid-inner .metric-card:nth-child(3) {
+    grid-column: 1 / 3;
+    grid-row: auto;
+  }
+
+  .metric-card-whitespace {
+    display: none;
+  }
+}
+
+/* Mobile (≤720px): single column, tighter spacing */
+@media (max-width: 720px) {
+  .metric-grid-inner {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .metric-grid-inner .metric-card:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .metric-card {
+    padding: 1rem;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+  }
+}

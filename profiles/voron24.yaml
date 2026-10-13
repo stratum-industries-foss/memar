@@ -1,0 +1,54 @@
+# Voron 2.4 — CoreXY with quad gantry level (QGL)
+# Source: Voron Design official specs + Klipper/Moonraker standard
+machine_type: fdm
+protocol: moonraker  # Klipper + Moonraker (Voron standard)
+nozzle_diameter_mm: 0.4
+filament_diameter_mm: 1.75
+build_volume:
+  x: 250.0
+  y: 250.0
+  z: 250.0
+
+# Inductive probe or precision mechanical (Klicky)
+probe: true
+probe_type: inductive  # Commonly sensor-based, Klicky or similar
+filament_sensor: true
+webcam_expected: true
+
+# Voron 2.4 heating capability (typically higher-end components)
+safe_nozzle_max_c: 300.0  # All-metal hotend typical
+safe_bed_max_c: 110.0
+
+# Voron maintenance (lower interval — precision machine)
+maintenance_interval_hours: 120
+maintenance_interval_jobs: 200
+maintenance_interval_filament_g: 10000
+
+capabilities:
+  quad_gantry_level: true  # Voron-specific: moving gantry requires QGL
+  mesh_bed_leveling: true  # Adaptive mesh leveling common
+  manual_probe_required: false
+  resonance_compensation: true  # ADXL345 accel. chip common on Vorons
+
+start_gcode: |
+  G28
+  QUAD_GANTRY_LEVEL
+  G28 Z
+  BED_MESH_CALIBRATE
+  G1 X5 Y10 Z0.3 F5000
+  G92 E0
+  G1 X50 Y10 Z0.3 E25 F1500
+
+end_gcode: |
+  TURN_OFF_HEATERS
+  CANCEL_PRINT
+  G28 X Y
+  G1 Z250
+  M84
+
+notes:
+  - Quad gantry level (QGL) mandatory after homing; skipping causes crashes
+  - Moving gantry on Z axis during leveling
+  - Adaptive mesh leveling recommended for large build plate
+  - Resonance compensation (ADXL) reduces ringing/ghosting
+  - Klipper/Moonraker mandatory; no Marlin support

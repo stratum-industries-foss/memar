@@ -1,0 +1,7 @@
+# Optional: Layer this on with: docker compose -f docker-compose.yml -f docker-compose.host-network.yml up -d
+# This grants the MEMAR container direct access to your local network for device auto-detection.
+# Only use on Linux Docker hosts; Docker Desktop (Mac/Windows) does not expose the real LAN even in host mode.
+
+services:
+  memar:
+    network_mode: host
