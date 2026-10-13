@@ -2,6 +2,7 @@
 
 **Mesh Equipment Monitoring, Analytics & Rendering** — Self-hosted fleet monitor for 3D printers, CNC, lasers, and any equipment with a REST API.
 
+[![CI](https://github.com/stratum-industries-foss/memar/actions/workflows/ci.yml/badge.svg)](https://github.com/stratum-industries-foss/memar/actions/workflows/ci.yml)
 [![GitHub License](https://img.shields.io/github/license/stratum-industries-foss/memar?color=00c853)](LICENSE)
 [![Docker Ready](https://img.shields.io/badge/docker-ready-blue?logo=docker)](docker-compose.yml)
 [![AGPL-3.0 License](https://img.shields.io/badge/license-AGPL--3.0-green)](LICENSE)
