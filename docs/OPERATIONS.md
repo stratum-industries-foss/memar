@@ -83,7 +83,7 @@ This is **not** in the database — it's a bind-mounted host directory
 the host at `config/` in the repo. Back it up like any other file:
 
 ```bash
-cp config/devices.example.yaml backups/devices-$(date +%Y%m%d-%H%M%S).yaml
+cp config/devices.yaml backups/devices-$(date +%Y%m%d-%H%M%S).yaml
 ```
 
 (If you set `MEMAR_CONFIG_PATH` to point somewhere else, back up that file
@@ -106,7 +106,7 @@ docker run --rm -v memar_memar_data:/data -v "$PWD/backups":/backup \
 docker run --rm -v memar_memar_data:/data -v "$PWD/backups":/backup \
   alpine sh -c "cd /data && tar xzf /backup/memar-data-<timestamp>.tar.gz"
 
-cp backups/devices-<timestamp>.yaml config/devices.example.yaml
+cp backups/devices-<timestamp>.yaml config/devices.yaml
 docker compose up -d
 ```
 

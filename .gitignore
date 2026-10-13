@@ -99,3 +99,4 @@ deploy/systemd/farm-dashboard.env
 # internal material never ships publicly
 docs/internal/
 frontend/.lighthouseci/
+.cde-test/
