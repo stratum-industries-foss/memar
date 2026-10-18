@@ -23,7 +23,7 @@ websockets>=12.0
 asyncua>=1.1.0                  # OPC-UA industrial adapter (opcua.py)
 # --- Messaging Hub (all optional — adapters self-gate when unconfigured) ---
 python-telegram-bot>=21.0       # Telegram polling (bidirectional)
-slack_sdk>=3.0                  # Slack webhook + Socket Mode
+slack_sdk>=3.45.0                  # Slack webhook + Socket Mode
 mattermostdriver>=7.3           # Mattermost REST API
 matrix-nio>=0.20                # Matrix/Element sync client
 jinja2>=3.0                     # Generic webhook payload templates
