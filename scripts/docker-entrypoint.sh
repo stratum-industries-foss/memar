@@ -21,10 +21,14 @@ case "$PUID$PGID" in
   *[!0-9]*) echo "MEMAR: MEMAR_UID and MEMAR_GID must be numbers" >&2; exit 2 ;;
 esac
 
+if [ -L "$DATA" ]; then
+  echo "MEMAR: refusing to start: data dir $DATA is a symlink (would chown/write through it). Mount the real directory instead." >&2
+  exit 3
+fi
 mkdir -p "$DATA"
 if [ "$(stat -c %u "$DATA")" != "$PUID" ] || [ "$(stat -c %g "$DATA")" != "$PGID" ]; then
   echo "MEMAR: giving uid $PUID ownership of $DATA"
-  if ! chown -R "$PUID:$PGID" "$DATA" 2>/dev/null; then
+  if ! chown -hR "$PUID:$PGID" "$DATA" 2>/dev/null; then
     echo "MEMAR: could not change the owner of $DATA (network share?)." >&2
     echo "MEMAR: set MEMAR_UID and MEMAR_GID to the folder's owner, or make it writable." >&2
   fi

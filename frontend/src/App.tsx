@@ -4012,7 +4012,21 @@ export default function App() {
         </div>
       )}
 
-      <FleetSummary kpi={fleetKpi} m={metrics?.summary} showMetrics={dashboardSettings.show_metrics_strip} onOpenAnalytics={() => setAnalyticsOpen(true)} onOpenService={() => setServiceOpen(true)} />
+      {!(fleetLoaded && fleet.printers.length === 0) && <FleetSummary kpi={fleetKpi} m={metrics?.summary} showMetrics={dashboardSettings.show_metrics_strip} onOpenAnalytics={() => setAnalyticsOpen(true)} onOpenService={() => setServiceOpen(true)} />}
+
+      {fleetLoaded && fleet.printers.length === 0 && (
+        <section className="first-device-empty" aria-label="Add your first device">
+          <h2>Add your first device</h2>
+          <p>Connect a 3D printer or CNC machine to start monitoring it here.</p>
+          <ol>
+            <li>Make sure the machine is on and connected to your network.</li>
+            <li>Select Add device and follow the steps.</li>
+          </ol>
+          {userRole === 'admin'
+            ? <button type="button" className="first-device-btn" onClick={() => setSetupWizardOpen(true)}>Add device</button>
+            : <p className="subtle">Ask an admin to add the first device.</p>}
+        </section>
+      )}
 
       <section className="dash-filters" aria-label="Fleet filters and actions">
           <div className="filter-row">
@@ -4224,7 +4238,7 @@ export default function App() {
 
         <div className="dash-main">
 
-      {filteredPrinters.length === 0 && fleetLoaded && (
+      {filteredPrinters.length === 0 && fleetLoaded && fleet.printers.length > 0 && (
         <section className="fleet-matrix-section">
           <div className="fleet-matrix-header"><h3>Fleet Matrix</h3></div>
           <div className="subtle" style={{ textAlign: 'center', padding: '40px', fontSize: '0.9rem' }}>
@@ -4295,7 +4309,7 @@ export default function App() {
 
       {fleetLoaded && (
         <main id="main-content" className="group-stack">
-          {groupedPrinters.length === 0 && (
+          {groupedPrinters.length === 0 && fleet.printers.length > 0 && (
             <section className="group">
               <div className="subtle" style={{ textAlign: 'center', padding: '60px 20px', fontSize: '0.95rem' }}>
                 {fleet.printers.length === 0 ? 'No printers yet — add a device.' : 'No printers match your current filters.'}

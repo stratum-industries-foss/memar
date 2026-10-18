@@ -1435,10 +1435,10 @@ textarea:focus-visible,
 .action-preheat { border-color: oklch(0.68 0.18 62 / 0.40) !important; background: oklch(0.68 0.18 62 / 0.12) !important; color: oklch(0.68 0.18 62) !important; }
 .action-preheat:hover { background: oklch(0.68 0.18 62 / 0.20) !important; }
 
-.card-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 4px; align-items: stretch; }
+.card-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 4px; align-items: stretch; }
 .card-actions > button,
 .card-actions > .action-link,
-.card-actions .ui-launcher > button { min-height: 32px; justify-content: center; text-align: center; font-size: 0.85rem; padding: 3px 6px; }
+.card-actions .ui-launcher > button { min-height: 36px; justify-content: center; text-align: center; font-size: 0.9rem; line-height: 1.2; padding: 4px 8px; white-space: normal; overflow-wrap: anywhere; }
 .action-jog { border-color: oklch(0.72 0.17 142 / 0.40) !important; background: oklch(0.72 0.17 142 / 0.10) !important; color: oklch(0.72 0.17 142) !important; }
 .action-jog:hover { background: oklch(0.72 0.17 142 / 0.18) !important; }
 .action-dryrun { border-color: oklch(0.55 0.18 265 / 0.40) !important; background: oklch(0.55 0.18 265 / 0.10) !important; color: oklch(0.55 0.18 265) !important; }
@@ -2146,7 +2146,7 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
 .density-compact .card-info-grouped { gap: 3px; }
 .density-compact .card-actions > button,
 .density-compact .card-actions > .action-link,
-.density-compact .card-actions .ui-launcher > button { min-height: 28px; font-size: 0.8rem; padding: 2px 4px; }
+.density-compact .card-actions .ui-launcher > button { min-height: 32px; font-size: 0.85rem; padding: 3px 6px; }
 .density-comfortable .card                { padding: 18px 22px; }
 .density-comfortable .card-header        { margin-bottom: 14px; }
 .density-comfortable .card-header label  { font-size: 1.25rem; }
@@ -3112,7 +3112,7 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
 .card-preheat-select {
   flex: 1;
   min-width: 0;
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   padding: 3px 4px;
   background: var(--surface-l2);
   color: var(--text-primary);
@@ -3122,10 +3122,10 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
 
 .card-preheat-btn {
   flex-shrink: 0;
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  padding: 3px 8px;
-  min-height: 26px;
+  padding: 3px 10px;
+  min-height: 30px;
   background: oklch(0.75 0.16 84 / 0.15);
   border: 1px solid oklch(0.75 0.16 84 / 0.45);
   border-radius: var(--radius-sm);
@@ -3175,6 +3175,7 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
   padding: 0;
   line-height: 1;
 }
+.gauge-lbl-edit { font-size: 0.8rem; flex-shrink: 0; max-width: none; overflow: visible; text-overflow: clip; white-space: nowrap; }
 .gauge-lbl-edit:hover { color: var(--accent-text); }
 
 .card-temp-input {
@@ -3408,7 +3409,7 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
 /* Controls nested inside info panel */
 .card-info-section .printer-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   min-width: 0;
   gap: 4px;
   margin-top: 6px;
@@ -3432,8 +3433,11 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
 
 .card-info-section .printer-controls > button {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+  padding: 6px 8px;
+  font-size: 0.9rem;
 }
 
 /* Responsive: 1100px → tighten info tiles */
@@ -5190,3 +5194,9 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
   white-space: nowrap;
   border: 0;
 }
+
+.first-device-empty { max-width: 560px; margin: 32px auto; padding: 28px 24px; text-align: center; background: var(--surface-l2); border: 1px solid var(--border-default); border-radius: var(--radius-lg); }
+.first-device-empty h2 { font-size: 1.5rem; margin: 0 0 10px; }
+.first-device-empty p { font-size: 1.05rem; margin: 0 0 12px; }
+.first-device-empty ol { text-align: left; display: inline-block; font-size: 1.05rem; margin: 0 0 18px; padding-left: 22px; line-height: 1.6; }
+.first-device-btn { font-size: 1.1rem; font-weight: 600; padding: 12px 28px; min-height: 48px; border-radius: var(--radius-lg); border: none; background: var(--color-accent, #3b82f6); color: #fff; cursor: pointer; }
