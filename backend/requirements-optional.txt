@@ -5,7 +5,7 @@
 #   slowapi   — per-IP rate limiting on auth endpoints
 #   opencv-python, pillow, numpy — PA calibration vision analysis
 #
-aiomqtt>=0.3.0
+aiomqtt>=2.5.1
 slowapi>=0.1.9
 opencv-python>=4.8.0
 pillow>=10.0.0
