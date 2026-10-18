@@ -40,16 +40,16 @@ jobs:
             type=raw,value=latest
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and push Docker image (linux/amd64, linux/arm64)
         # The Rust CV tools cross-compile for the target arch (no QEMU for cargo),
         # so the arm64 build time is close to amd64. QEMU only runs the final-stage
         # RUN steps (apt, npm, pip wheels check).
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
