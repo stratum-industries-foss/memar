@@ -5,7 +5,7 @@
 # Base images are pinned to minor tags. Bump them deliberately; CI builds weekly.
 
 # Stage 1: build the frontend (runs on the build host, not emulated)
-FROM --platform=$BUILDPLATFORM node:22-slim AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:26-slim AS frontend-builder
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --legacy-peer-deps
