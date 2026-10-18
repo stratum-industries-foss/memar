@@ -24,7 +24,10 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(cat "$REPO_ROOT/VERSION")"
 # BUILD_ID is written by scripts/release.sh and is not part of the public export;
 # a plain clone derives one from git, or the time, so install never aborts here.
-BUILD_ID="$(cat "$REPO_ROOT/BUILD_ID" 2>/dev/null | tr -d '[:space:]')"
+# Under set -o pipefail a missing file makes this pipeline fail, which aborts the
+# assignment before the fallback below runs. Read the file in a form that cannot fail.
+BUILD_ID=""
+if [ -r "$REPO_ROOT/BUILD_ID" ]; then BUILD_ID="$(tr -d '[:space:]' < "$REPO_ROOT/BUILD_ID")"; fi
 if [[ -z "$BUILD_ID" ]]; then
   BUILD_ID="$(git -C "$REPO_ROOT" rev-parse --short=12 HEAD 2>/dev/null || date -u +%Y%m%d%H%M%S)"
 fi
