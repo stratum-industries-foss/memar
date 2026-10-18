@@ -1,5 +1,6 @@
 """Monthly production summary email report."""
 
+from .timeutil import utcnow as _utcnow
 from datetime import datetime, timedelta
 from typing import Optional
 import html
@@ -154,7 +155,7 @@ class MonthlyReportGenerator:
             </p>
         </body>
         </html>
-        """.format(timestamp=datetime.utcnow().isoformat())
+        """.format(timestamp=_utcnow().isoformat())
 
         return html
 

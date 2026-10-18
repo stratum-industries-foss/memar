@@ -15,6 +15,7 @@ from .auth import hash_password
 from .db import get_db
 from .email_service import send_password_reset_email
 from .models_db import PasswordResetToken, RefreshToken, User
+from .firstrun import public_base_url as _public_base_url
 
 password_reset_router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -65,7 +66,7 @@ async def forgot_password(
         db.add(PasswordResetToken(user_id=user.id, token_hash=token_hash, expires_at=expires_at))
         await db.commit()
 
-        public_url = os.getenv("MEMAR_PUBLIC_URL", "http://localhost:9000").rstrip("/")
+        public_url = _public_base_url()
         reset_url = f"{public_url}/?reset_token={token}"
 
         # Try to send email; if it fails (SMTP not configured), fallback to direct link
@@ -75,10 +76,15 @@ async def forgot_password(
     # But if email SMTP is not configured, return the link directly for local dev use
     response = {"detail": "If the account exists, a reset link has been sent"}
 
-    # Fallback for dev/local deployments where SMTP is not configured
-    if not email_sent and reset_url and os.getenv("MEMAR_ENV", "").lower() in _DEV_ENVS:
-        response["reset_link"] = reset_url
-        response["detail"] = "SMTP not configured. Reset link is provided below. (This link will only appear in development mode.)"
+    # Without SMTP, never hand the link to the (unauthenticated) caller: anyone
+    # could reset the admin. Print it to the server console instead, where only
+    # the operator can read it. The owner can also run `memar reset-admin`.
+    if not email_sent and reset_url:
+        print(
+            f"\n[MEMAR] Password reset requested for an account. Email is not set up, so here "
+            f"is the reset link (valid {_TOKEN_TTL_MINUTES} min):\n  {reset_url}\n",
+            flush=True,
+        )
 
     return response
 

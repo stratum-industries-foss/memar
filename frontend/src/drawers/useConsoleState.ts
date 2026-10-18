@@ -22,7 +22,7 @@ export interface UseConsoleStateResult {
   resetCycle: () => void
   log: Array<{ type: string; text: string }>
   sending: boolean
-  scrollRef: React.RefObject<HTMLDivElement>
+  scrollRef: React.RefObject<HTMLDivElement | null>
   send: (script: string) => Promise<void>
   clear: () => void
   loadHistory: () => Promise<void>

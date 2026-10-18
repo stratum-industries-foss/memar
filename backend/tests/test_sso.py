@@ -395,7 +395,7 @@ async def test_sso_settings_db_value_overrides_env_var(client, admin_client, mon
 async def test_sso_config_reflects_license_and_env(client, monkeypatch):
     """The login screen reads this to decide which buttons to show."""
     licmod._state = None  # unlicensed / unconfigured
-    assert (await client.get("/api/auth/sso/config")).json() == {"oidc": False, "ldap": False}
+    assert (await client.get("/api/auth/sso/config")).json() == {"oidc": False, "ldap": False, "saml": False}
 
     _oidc_env(monkeypatch)
     monkeypatch.setenv("MEMAR_LDAP_SERVER", "ldap://ldap.example.com")

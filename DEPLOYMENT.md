@@ -67,7 +67,7 @@ FloorPlanLayout (device_id, x, y, rotation)
 
 ### Feature Gating (Tiers)
 
-The free tier allows 5 devices with core monitoring. Every paid tier unlocks the same feature set (audit logs, compliance export, custom branding, email alerts, SSO, OEE, floor plan, and the rest); tiers differ only in device limit. See https://stratum.industries/memar for current limits and prices. Support response times are not part of the software license.
+The free tier allows 5 devices with core monitoring. Every paid tier unlocks the same feature set (audit logs, compliance export, custom branding, email alerts, SSO, OEE, floor plan, and the rest); tiers differ only in device limit. The compliance export (`GET /api/admin/audit/export`) writes the real audit rows with their hash-chain fields and the chain head, so an auditor can check them; it does not generate summaries. See https://stratum.industries/memar for current limits and prices. Support response times are not part of the software license.
 
 ---
 

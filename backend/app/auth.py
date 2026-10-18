@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,25 +28,11 @@ WS_TICKET_TTL_SECONDS = 30
 
 
 # JWT Configuration
-JWT_SECRET = os.getenv("MEMAR_JWT_SECRET")
-if not JWT_SECRET:
-    # In production a missing secret is fatal: an auto-generated per-process key
-    # means every worker signs with a different key (random 401s) and every
-    # restart invalidates all sessions. Refuse to boot. In dev/test we fall back
-    # to a random key with a loud warning so local runs and the suite work.
-    if os.getenv("MEMAR_ENV", "").lower() in ("production", "prod"):
-        raise RuntimeError(
-            "MEMAR_JWT_SECRET is required in production (MEMAR_ENV=production) "
-            "but is not set. Generate one with "
-            "`python -c \"import secrets; print(secrets.token_hex(32))\"` "
-            "and set it in the environment."
-        )
-    JWT_SECRET = secrets.token_hex(32)
-    logger.warning(
-        "MEMAR_JWT_SECRET not set — using an auto-generated key (dev/test only). "
-        "Set MEMAR_JWT_SECRET to a fixed value in production; tokens otherwise "
-        "invalidate on restart and break across multiple workers."
-    )
+# MEMAR_JWT_SECRET if set; otherwise a key generated once and kept in the data
+# directory, so a zero-config install keeps sessions across restarts/upgrades.
+from .firstrun import load_or_create_jwt_secret  # noqa: E402
+
+JWT_SECRET = load_or_create_jwt_secret()
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
@@ -63,14 +49,22 @@ _REFRESH_TTL_SECONDS = int(
     os.getenv("MEMAR_REFRESH_TOKEN_EXPIRE_SECONDS", str(REFRESH_TOKEN_EXPIRE_DAYS * 86400))
 )
 
-# Shipped default admin credential. When MEMAR_ADMIN_PASSWORD is not set, the app
-# boots with admin/admin and FORCES a password change on first login (server-side
-# enforced, not just UI). Setting MEMAR_ADMIN_PASSWORD opts out of the forced flow.
+# There is no shipped default credential. Without MEMAR_ADMIN_PASSWORD the instance
+# starts "unclaimed" and the owner creates the first admin in the browser
+# (firstrun.py / setup_routes.py). "admin" is still refused as a new password.
 DEFAULT_ADMIN_PASSWORD = "admin"
 MIN_PASSWORD_LENGTH = 8
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# bcrypt only uses the first 72 bytes. The old passlib wrapper (unmaintained, breaks
+# on bcrypt>=4.1) truncated silently; bcrypt>=5 raises instead. Truncating here keeps
+# every existing $2b$ hash valid.
+_BCRYPT_MAX_BYTES = 72
+_BCRYPT_ROUNDS = 12
+
+
+def _pw_bytes(password: str) -> bytes:
+    return password.encode("utf-8")[:_BCRYPT_MAX_BYTES]
 
 # Dummy hash for constant-time rejection of disabled/unknown users (prevents timing oracles)
 _DUMMY_HASH = "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.jf.JNi/EUvW.Tm"  # bcrypt of "dummy"
@@ -99,14 +93,25 @@ class TokenResponse(BaseModel):
 
 
 # Password functions
+class PasswordTooLong(ValueError):
+    pass
+
+
 def hash_password(password: str) -> str:
     """Hash a plain password with bcrypt."""
-    return pwd_context.hash(password)
+    if len(password.encode("utf-8")) > _BCRYPT_MAX_BYTES:
+        # bcrypt ignores bytes past 72: two passwords sharing the first 72 bytes
+        # would be the same. Refuse instead of silently weakening the secret.
+        raise PasswordTooLong(f"Passwords can be at most {_BCRYPT_MAX_BYTES} bytes long.")
+    return bcrypt.hashpw(_pw_bytes(password), bcrypt.gensalt(_BCRYPT_ROUNDS)).decode("ascii")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
     """Verify a plain password against a bcrypt hash."""
-    return pwd_context.verify(plain, hashed)
+    try:
+        return bcrypt.checkpw(_pw_bytes(plain), hashed.encode("ascii"))
+    except (ValueError, TypeError):
+        return False  # malformed or non-bcrypt hash
 
 
 # JWT functions
@@ -196,58 +201,78 @@ async def consume_ws_ticket(nonce: str) -> dict | None:
     return {"id": int(row[0]), "username": row[1], "role": row[2]}
 
 
+async def is_claimed(db: AsyncSession) -> bool:
+    """True once any user account exists."""
+    result = await db.execute(select(User.id).limit(1))
+    return result.first() is not None
+
+
 async def ensure_admin_user(db: AsyncSession) -> None:
+    """Startup bootstrap of the first admin.
+
+    - An admin exists: nothing to do.
+    - MEMAR_ADMIN_PASSWORD is set: create that admin (operator chose the password).
+    - Otherwise: leave the instance unclaimed and print the setup link; the owner
+      creates the admin in the browser. No default password exists.
     """
-    Create a default admin user if none exists.
-    Called at startup.
-    """
-    # Check if admin user already exists
+    from . import firstrun
+
     result = await db.execute(select(User).where(User.role == "admin"))
-    existing_admin = result.scalars().first()
-    if existing_admin:
+    if result.scalars().first():
         logger.info("Admin user already exists")
+        firstrun.clear_setup_code()
         return
 
-    # Get credentials from env, else ship with a known default that must be changed.
     username = os.getenv("MEMAR_ADMIN_USER", "admin")
     password = os.getenv("MEMAR_ADMIN_PASSWORD")
-    env = os.getenv("MEMAR_ENV", "").lower()
-
     if password:
-        # Operator chose the password explicitly — trust it, no forced change.
-        must_change = False
-    elif env in ("production", "prod"):
-        # Production MUST have an explicit password — no default admin/admin.
-        raise RuntimeError(
-            "MEMAR_ADMIN_PASSWORD is required in production (MEMAR_ENV=production). "
-            "Set it to a strong password before starting the server."
-        )
-    else:
-        # Dev/test: boot with the documented default and FORCE a change on first login.
-        password = DEFAULT_ADMIN_PASSWORD
-        must_change = True
-        logger.warning(
-            "MEMAR_ADMIN_PASSWORD not set — created admin user '%s' with the default "
-            "password '%s'. You will be required to change it on first login. Set "
-            "MEMAR_ADMIN_PASSWORD in the environment to skip the default entirely.",
-            username,
-            DEFAULT_ADMIN_PASSWORD,
-        )
+        if len(password) < 12:
+            logger.warning("MEMAR_ADMIN_PASSWORD is shorter than 12 characters; choose a longer one.")
+        db.add(User(
+            username=username,
+            password_hash=hash_password(password),
+            role="admin",
+            is_active=True,
+            must_change_password=False,
+            auth_provider="local",
+        ))
+        await db.commit()
+        firstrun.clear_setup_code()
+        logger.info("Created admin user from MEMAR_ADMIN_PASSWORD: %s", username)
+        return
 
-    # Hash and create user
-    password_hash = hash_password(password)
-    admin_user = User(
-        username=username,
-        password_hash=password_hash,
-        role="admin",
-        is_active=True,
-        must_change_password=must_change,
-        auth_provider="local",
+    if await is_claimed(db):
+        # Users exist but none is an admin (e.g. the admin was deleted). Do not
+        # reopen setup automatically; `memar reset-admin` is the recovery path.
+        logger.warning("No admin account exists. Run `memar reset-admin` to set one up.")
+        return
+
+    code = firstrun.get_or_create_setup_code()
+    logger.info("No accounts yet: waiting for the owner to finish setup in the browser.")
+    firstrun.print_setup_banner(code)
+
+
+async def issue_tokens(db: AsyncSession, user: User) -> "TokenResponse":
+    """Mint an access token and a stored (hashed) refresh token for `user`."""
+    access_token = create_access_token(
+        user.id, user.username, user.role, user.must_change_password
     )
-
-    db.add(admin_user)
+    refresh_token = create_refresh_token()
+    token_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(seconds=_REFRESH_TTL_SECONDS)
+    db.add(RefreshToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=expires_at,
+        revoked=False,
+    ))
     await db.commit()
-    logger.info(f"Created admin user: {username}")
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        must_change_password=user.must_change_password,
+    )
 
 
 # Route handlers (these will be integrated into main.py in Step 5)
@@ -261,7 +286,7 @@ async def login(db: AsyncSession, request: LoginRequest) -> TokenResponse:
 
     if not user or not user.is_active:
         # Constant-time rejection: always verify to prevent timing oracle
-        pwd_context.verify("dummy", _DUMMY_HASH)
+        verify_password("dummy", _DUMMY_HASH)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -282,31 +307,7 @@ async def login(db: AsyncSession, request: LoginRequest) -> TokenResponse:
             detail="Invalid credentials",
         )
 
-    # Create tokens
-    access_token = create_access_token(
-        user.id, user.username, user.role, user.must_change_password
-    )
-    refresh_token = create_refresh_token()
-
-    # Hash and store refresh token
-    token_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
-    expires_at = datetime.now(timezone.utc) + timedelta(seconds=_REFRESH_TTL_SECONDS)
-
-    refresh_token_obj = RefreshToken(
-        user_id=user.id,
-        token_hash=token_hash,
-        expires_at=expires_at,
-        revoked=False,
-    )
-    db.add(refresh_token_obj)
-    await db.commit()
-
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        must_change_password=user.must_change_password,
-    )
+    return await issue_tokens(db, user)
 
 
 async def change_password(

@@ -16,6 +16,7 @@ Usage (broadcast):
 """
 
 from __future__ import annotations
+from ..timeutil import utcnow as _utcnow
 
 import asyncio
 import logging
@@ -126,7 +127,7 @@ class MessagingHub:
         await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _safe_send(self, adapter: MessagingAdapter, event: AlertEvent) -> None:
-        ts = datetime.utcnow().isoformat() + "Z"
+        ts = _utcnow().isoformat() + "Z"
         try:
             ok = await adapter.send(event)
             self._last_delivery[adapter.name] = {"ok": ok, "ts": ts, "error": None}

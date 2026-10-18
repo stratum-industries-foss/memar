@@ -16,14 +16,17 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 cd "$FRONTEND_DIR"
+# The lockfile is resolved with legacy peer deps (same as the Dockerfile).
 if [ -f package-lock.json ]; then
-  npm ci
+  npm ci --legacy-peer-deps --no-audit --no-fund
 else
-  npm install
+  npm install --legacy-peer-deps --no-audit --no-fund
 fi
 npm run build
-rm -rf "$TARGET_DIR"
-mkdir -p "$TARGET_DIR"
-cp -a dist/. "$TARGET_DIR/"
+# vite.config sets outDir to ../frontend_dist; older configs wrote to dist/.
+if [ -f dist/index.html ]; then
+  rm -rf "$TARGET_DIR"; mkdir -p "$TARGET_DIR"; cp -a dist/. "$TARGET_DIR/"
+fi
+[ -f "$TARGET_DIR/index.html" ] || { echo "frontend build produced no index.html"; exit 1; }
 
 echo "[OK] built frontend into $TARGET_DIR"

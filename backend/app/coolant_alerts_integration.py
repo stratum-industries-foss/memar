@@ -8,6 +8,7 @@ wired in main.py.
 """
 
 from __future__ import annotations
+from .timeutil import utcnow as _utcnow
 
 import os
 import asyncio
@@ -142,7 +143,7 @@ async def evaluate_coolant_alerts_once() -> list[dict]:
     Returns the list of alert dicts raised this call. Notification failures are
     swallowed (logged) and never abort the sweep.
     """
-    now = datetime.utcnow()  # naive UTC — consistent with stored timestamps
+    now = _utcnow()  # naive UTC — consistent with stored timestamps
     cutoff = now - timedelta(minutes=LOOKBACK_MINUTES)
     webhook_url = os.getenv("MEMAR_COOLANT_WEBHOOK_URL") or os.getenv("WEBHOOK_URL")
 

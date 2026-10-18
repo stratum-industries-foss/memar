@@ -28,15 +28,12 @@ describe('SetupWizard handleAddDevice error handling', () => {
     // Go to the manual "Device details" step.
     fireEvent.click(await screen.findByText('Add device manually'))
 
-    // Fill the three required fields (matched by their placeholders).
+    // Fill the required fields (matched by their placeholders). The ID is optional now.
     fireEvent.change(screen.getByPlaceholderText('http://192.168.1.100:7125'), {
       target: { value: 'http://x:1' },
     })
     fireEvent.change(screen.getByPlaceholderText('My Printer'), {
       target: { value: 'My Printer' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('printer_1'), {
-      target: { value: 'printer_1' },
     })
 
     // Click the modal primary action "Add device".

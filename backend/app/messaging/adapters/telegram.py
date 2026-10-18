@@ -4,6 +4,7 @@ Requires: python-telegram-bot>=21.0,<22 (runtime-tested manually; not covered by
 """
 
 from __future__ import annotations
+from ...timeutil import utcnow as _utcnow
 
 import asyncio
 import html
@@ -74,7 +75,7 @@ class TelegramAdapter(MessagingAdapter):
                     self._last_error = str(exc)
 
         if ok:
-            self._last_ok = datetime.utcnow().isoformat() + "Z"
+            self._last_ok = _utcnow().isoformat() + "Z"
             self._last_error = None
         return ok
 

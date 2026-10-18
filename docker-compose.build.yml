@@ -1,0 +1,10 @@
+# Developer override: build the image from this checkout instead of pulling it.
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+
+services:
+  memar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: memar:dev
+    pull_policy: build

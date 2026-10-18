@@ -49,10 +49,23 @@ def _write_config_file_locked(path: Path, data: dict) -> None:
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
         try:
             tmp = path.with_suffix('.tmp')
-            tmp.write_text(yaml.safe_dump(data, sort_keys=False))
+            _write_private_text(tmp, yaml.safe_dump(data, sort_keys=False))
             os.replace(tmp, path)
         finally:
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def _write_private_text(path: Path, text: str) -> None:
+    """Write a config file readable only by MEMAR (0600): it can hold device API keys."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        os.write(fd, text.encode("utf-8"))
+    finally:
+        os.close(fd)
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -109,7 +122,7 @@ def _generate_config_from_discovery(config_path: Path) -> None:
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
     data = generate_config()
-    config_path.write_text(yaml.safe_dump(data, sort_keys=False))
+    _write_private_text(config_path, yaml.safe_dump(data, sort_keys=False))
     logger.info(f"Generated config with {len(data.get('printers', []))} printers")
 
 

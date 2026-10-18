@@ -29,7 +29,7 @@ export interface UseGcodeConsoleResult {
   /** Error message if last operation failed. */
   error: string | undefined
   /** Ref to console output div for auto-scroll. */
-  scrollRef: React.RefObject<HTMLDivElement>
+  scrollRef: React.RefObject<HTMLDivElement | null>
   /** Send a G-code command and append response to log. */
   send: (script: string) => Promise<void>
   /** Clear the console log. */

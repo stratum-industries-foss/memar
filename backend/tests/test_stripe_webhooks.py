@@ -3,6 +3,7 @@ charge.refunded, charge.dispute.created,
 invoice.payment_action_required, customer.subscription.paused.
 """
 
+from app.timeutil import utcnow as _utcnow
 import os
 from datetime import datetime, timezone, timedelta
 from unittest.mock import patch, MagicMock, AsyncMock
@@ -88,7 +89,7 @@ async def test_charge_refunded_full_expires_license(client):
         )
         lic = result.scalar_one()
 
-    now = datetime.utcnow()
+    now = _utcnow()
     assert lic.expires_at <= now, "License should be expired after full refund"
     mock_cancel.assert_awaited_once()
 
@@ -121,7 +122,7 @@ async def test_charge_refunded_partial_leaves_license_active(client):
         )
         lic = result.scalar_one()
 
-    assert lic.expires_at > datetime.utcnow(), "License should still be active after partial refund"
+    assert lic.expires_at > _utcnow(), "License should still be active after partial refund"
 
 
 @pytest.mark.asyncio
@@ -241,7 +242,7 @@ async def test_subscription_paused_expires_license(client):
         )
         lic = result.scalar_one()
 
-    assert lic.expires_at <= datetime.utcnow(), "License should be expired after subscription pause"
+    assert lic.expires_at <= _utcnow(), "License should be expired after subscription pause"
 
 
 @pytest.mark.asyncio

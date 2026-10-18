@@ -74,6 +74,10 @@ async def client():
     before each test gives true isolation."""
     from app.db import engine
     from app.models_db import Base
+    # Each test runs on its own event loop. SQLAlchemy >= 2.1 binds pooled
+    # aiosqlite connections to the loop that opened them, so drop the pool
+    # before touching the DB on this loop.
+    await engine.dispose(close=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
     await init_db()
@@ -145,3 +149,12 @@ async def viewer_client(admin_client):
     ac = await _login_as("view1", "secret123")
     yield ac
     await ac.aclose()
+
+
+@pytest.fixture(autouse=True)
+def _reset_setup_failures():
+    """Wrong-code counters are process-wide; each test starts with a clean slate."""
+    from app import setup_failures
+    setup_failures.reset()
+    yield
+    setup_failures.reset()

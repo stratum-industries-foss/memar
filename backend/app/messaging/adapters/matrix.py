@@ -10,6 +10,7 @@ Env vars:
 """
 
 from __future__ import annotations
+from ...timeutil import utcnow as _utcnow
 
 import asyncio
 import logging
@@ -108,7 +109,7 @@ class MatrixAdapter(MessagingAdapter):
                 self._last_error = f"Matrix send not accepted: {resp}"
                 logger.warning("Matrix send not accepted: %s", resp)
                 return False
-            self._last_ok = datetime.utcnow().isoformat() + "Z"
+            self._last_ok = _utcnow().isoformat() + "Z"
             self._last_error = None
             return True
         except Exception as exc:

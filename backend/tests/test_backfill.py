@@ -2,6 +2,7 @@
 and its status mapper. The backfill makes DB-backed analytics (throughput /
 error-rate / OEE trend) reflect real past jobs instead of reading 0."""
 
+from app.timeutil import utcnow as _utcnow
 import time
 from datetime import datetime
 
@@ -56,7 +57,7 @@ async def test_backfill_imports_history_idempotently(client, monkeypatch):
     assert completed.oee is None  # no historical per-job OEE — left null to keep the trend honest
     assert failed.oee == 0.0      # failures stored as 0.0 (kept in the average)
     # created_at is bucketed from the job's real end_time, not now().
-    assert completed.created_at < datetime.utcnow()
+    assert completed.created_at < _utcnow()
     assert completed.created_at < failed.created_at  # ordering preserved from end_time
 
     # Idempotent: a second run imports nothing new (incremental dedup on ended_at).

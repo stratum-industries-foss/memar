@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .deps import get_current_user, get_db, require_role
 from .models_db import IssuedLicense, StripeCustomer
+from .firstrun import public_base_url as _public_base_url
 
 
 logger = logging.getLogger(__name__)
@@ -167,7 +168,7 @@ async def create_checkout_session(
         env_var = f"MEMAR_STRIPE_PRICE_{tier.upper()}" + ("_ANNUAL" if billing_period == "annual" else "")
         raise HTTPException(503, f"Stripe price ID for tier '{tier}' not configured — set {env_var}")
 
-    public_url = os.getenv("MEMAR_PUBLIC_URL", "http://localhost:8000").rstrip("/")
+    public_url = _public_base_url()
 
     try:
         if is_airgap:
@@ -253,7 +254,10 @@ class SubscriptionStatus(BaseModel):
 
 
 # How many days before expiry the UI starts warning about renewal.
-RENEWAL_WARNING_DAYS = 14
+# Same policy as the renewal banner (main.py): online plans renew automatically,
+# so warn only in the last week; air-gap licences are renewed by hand, so a month.
+RENEWAL_WARNING_DAYS_ONLINE = 7
+RENEWAL_WARNING_DAYS_AIRGAP = 30
 
 
 _FREE_SUBSCRIPTION = SubscriptionStatus(
@@ -328,7 +332,9 @@ async def get_my_subscription(
     expiring_soon = False
     if status == "active" and expires_at is not None:
         days_until_expiry = max(0, (expires_at - now).days)
-        expiring_soon = days_until_expiry <= RENEWAL_WARNING_DAYS
+        window = (RENEWAL_WARNING_DAYS_AIRGAP if str(license.tier).startswith("airgap")
+                  else RENEWAL_WARNING_DAYS_ONLINE)
+        expiring_soon = days_until_expiry <= window
 
     return SubscriptionStatus(
         tier=license.tier,

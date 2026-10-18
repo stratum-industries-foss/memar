@@ -17,6 +17,7 @@ from .db import get_db
 from .deps import require_feature, require_role
 from .email_service import send_license_email
 from .models_db import User, StripeCustomer, IssuedLicense, SpoolLog, PasswordResetToken, RefreshToken
+from .firstrun import public_base_url as _public_base_url
 
 
 admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -198,6 +199,8 @@ async def create_user(
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(status_code=409, detail="Username already exists")
 
+    if len(body.password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=422, detail="Password must be at most 72 bytes (about 72 ASCII characters).")
     user = User(username=body.username, password_hash=hash_password(body.password), role=body.role,
                 is_active=True, auth_provider="local")
     db.add(user)
@@ -401,7 +404,7 @@ async def admin_reset_password(
     db.add(PasswordResetToken(user_id=user_id, token_hash=token_hash, expires_at=expires_at))
     await db.commit()
 
-    public_url = os.getenv("MEMAR_PUBLIC_URL", "http://localhost:9000").rstrip("/")
+    public_url = _public_base_url()
     reset_url = f"{public_url}/?reset_token={token}"
     await record_audit(db, action="user_reset_password", user=current_user, resource=f"user:{user_id}",
                        detail={"username": user.username}, request=request)

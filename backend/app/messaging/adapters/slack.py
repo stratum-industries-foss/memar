@@ -9,6 +9,7 @@ Env vars:
 """
 
 from __future__ import annotations
+from ...timeutil import utcnow as _utcnow
 
 import asyncio
 import logging
@@ -83,7 +84,7 @@ class SlackAdapter(MessagingAdapter):
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(self._webhook_url, json=payload)
                 r.raise_for_status()
-                self._last_ok = datetime.utcnow().isoformat() + "Z"
+                self._last_ok = _utcnow().isoformat() + "Z"
                 self._last_error = None
                 return True
         except Exception as exc:
@@ -115,7 +116,7 @@ class SlackAdapter(MessagingAdapter):
             })
         try:
             await client.chat_postMessage(channel=self._channel_id, blocks=blocks)
-            self._last_ok = datetime.utcnow().isoformat() + "Z"
+            self._last_ok = _utcnow().isoformat() + "Z"
             self._last_error = None
             return True
         except Exception as exc:

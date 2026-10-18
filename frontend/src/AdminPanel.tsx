@@ -67,6 +67,11 @@ interface SsoSettings {
   ldap_user_dn_template: string
   ldap_default_role: string
   sso_default_role: string
+  saml_idp_entity_id: string
+  saml_idp_sso_url: string
+  saml_idp_cert_pem: string
+  saml_sp_entity_id: string
+  saml_configured: boolean
   env_defaults: SsoEnvDefaults
 }
 
@@ -82,6 +87,10 @@ interface SsoDraft {
   ldapUserDnTemplate: string
   ldapDefaultRole: string
   ssoDefaultRole: string
+  samlIdpEntityId: string
+  samlIdpSsoUrl: string
+  samlIdpCertPem: string
+  samlSpEntityId: string
   envDefaults: SsoEnvDefaults
 }
 
@@ -100,6 +109,10 @@ function ssoDraftFromSettings(s: SsoSettings): SsoDraft {
     ldapUserDnTemplate: s.ldap_user_dn_template,
     ldapDefaultRole: s.ldap_default_role || 'viewer',
     ssoDefaultRole: s.sso_default_role || 'viewer',
+    samlIdpEntityId: s.saml_idp_entity_id,
+    samlIdpSsoUrl: s.saml_idp_sso_url,
+    samlIdpCertPem: s.saml_idp_cert_pem,
+    samlSpEntityId: s.saml_sp_entity_id,
     envDefaults: s.env_defaults,
   }
 }
@@ -249,6 +262,10 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
         ldap_user_dn_template: sso.ldapUserDnTemplate,
         ldap_default_role: sso.ldapDefaultRole,
         sso_default_role: sso.ssoDefaultRole,
+        saml_idp_entity_id: sso.samlIdpEntityId,
+        saml_idp_sso_url: sso.samlIdpSsoUrl,
+        saml_idp_cert_pem: sso.samlIdpCertPem,
+        saml_sp_entity_id: sso.samlSpEntityId,
       }
       if (sso.oidcClientSecretClear) {
         body.oidc_client_secret = ''
@@ -505,6 +522,30 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                 )}
                 <label>Redirect URI
                   <input value={sso.oidcRedirectUri} onChange={(e) => updSso({ oidcRedirectUri: e.target.value })} placeholder="https://…/api/auth/sso/oidc/callback" />
+                </label>
+
+                <strong style={{ fontSize: 13, marginTop: 8 }}>SAML 2.0</strong>
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                  Give your identity provider these values. Assertion consumer URL: <code>{typeof window !== 'undefined' ? `${window.location.origin}/api/auth/saml/acs` : '/api/auth/saml/acs'}</code>
+                </span>
+                <label>IdP entity ID
+                  <input value={sso.samlIdpEntityId} onChange={(e) => updSso({ samlIdpEntityId: e.target.value })} placeholder="https://idp.example.com/metadata" />
+                </label>
+                <label>IdP sign-on URL
+                  <input value={sso.samlIdpSsoUrl} onChange={(e) => updSso({ samlIdpSsoUrl: e.target.value })} placeholder="https://idp.example.com/sso" />
+                </label>
+                <label>IdP signing certificate (PEM)
+                  <textarea
+                    rows={5}
+                    value={sso.samlIdpCertPem}
+                    onChange={(e) => updSso({ samlIdpCertPem: e.target.value })}
+                    placeholder={'-----BEGIN CERTIFICATE-----\n…\n-----END CERTIFICATE-----'}
+                    style={{ fontFamily: 'monospace', fontSize: 12 }}
+                  />
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Pinned here. Metadata is not fetched at login, so a changed key on the network cannot be accepted.</span>
+                </label>
+                <label>Service provider entity ID (optional)
+                  <input value={sso.samlSpEntityId} onChange={(e) => updSso({ samlSpEntityId: e.target.value })} placeholder="Leave blank to use the metadata URL" />
                 </label>
 
                 <strong style={{ fontSize: 13, marginTop: 8 }}>LDAP</strong>

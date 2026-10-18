@@ -1,6 +1,7 @@
 """ntfy.sh push adapter — push-only, no commands."""
 
 from __future__ import annotations
+from ...timeutil import utcnow as _utcnow
 
 import logging
 import os
@@ -63,7 +64,7 @@ class NtfyAdapter(MessagingAdapter):
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.post(self._url, content=event.body.encode(), headers=headers)
                 resp.raise_for_status()
-                self._last_ok = datetime.utcnow().isoformat() + "Z"
+                self._last_ok = _utcnow().isoformat() + "Z"
                 self._last_error = None
                 return True
         except Exception as exc:

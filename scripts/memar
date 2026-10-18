@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# memar: admin CLI wrapper (setup-link, status, reset-admin).
+#
+#   Docker:  docker exec memar memar setup-link
+#   Native:  sudo memar setup-link
+#
+# Inside the image it runs the backend admin CLI with the container environment.
+# On a native install it loads /etc/memar.env as root, then runs the admin CLI
+# from the current release as the memar user. The env file stays root-only.
+set -euo pipefail
+
+# ---- Docker image: /app is the install root and the container env is already set.
+if [ -d /app/backend/app ] && [ -x /venv/bin/python3 ] && [ ! -d /opt/memar ]; then
+  cd /app/backend
+  if [ "$(id -u)" -eq 0 ]; then
+    # `docker exec` runs as root: act as the owner of the data dir (the server's
+    # user), so files it writes (the setup code) stay readable by the server.
+    data="${MEMAR_DATA_DIR:-/app/data}"
+    exec setpriv --reuid="$(stat -c %u "$data")" --regid="$(stat -c %g "$data")" \
+      --clear-groups -- env HOME=/home/memar /venv/bin/python3 -m app.admin_cli "$@"
+  fi
+  exec /venv/bin/python3 -m app.admin_cli "$@"
+fi
+
+# ---- Native install
+ENV_FILE="/etc/memar.env"
+APP_BACKEND="/opt/memar/current/backend"
+RUN_USER="memar"
+
+if [ "$(id -u)" -ne 0 ]; then
+  if command -v sudo >/dev/null 2>&1; then
+    exec sudo -- "$0" "$@"
+  fi
+  echo "memar: run as root (sudo memar $*)" >&2
+  exit 2
+fi
+
+if [ ! -r "$ENV_FILE" ]; then
+  echo "memar: $ENV_FILE not found. Is MEMAR installed? See INSTALL.md." >&2
+  exit 2
+fi
+if [ ! -x "$APP_BACKEND/.venv/bin/python3" ]; then
+  echo "memar: no installed release at $APP_BACKEND. Re-run install.sh." >&2
+  exit 2
+fi
+
+# Pass only MEMAR_* assignments from the env file, as argv (no shell eval).
+env_args=()
+while IFS= read -r line || [ -n "$line" ]; do
+  case "$line" in
+    MEMAR_*=*) env_args+=("$line") ;;
+  esac
+done < "$ENV_FILE"
+
+cd "$APP_BACKEND"
+exec runuser -u "$RUN_USER" -- env -i \
+  HOME=/var/lib/memar \
+  PATH=/usr/local/bin:/usr/bin:/bin \
+  "${env_args[@]}" \
+  "$APP_BACKEND/.venv/bin/python3" -m app.admin_cli "$@"

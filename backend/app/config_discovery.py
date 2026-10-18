@@ -47,7 +47,7 @@ def parse_printer_cfg(cfg_path: Path) -> dict[str, Any]:
         if not cfg_path.exists():
             result["parse_notes"].append(f"Config file not found: {cfg_path}")
             return result
-        text = cfg_path.read_text(errors="replace")
+        text = cfg_path.read_text(encoding="utf-8", errors="replace")
     except Exception as e:
         result["parse_notes"].append(f"Read error: {e}")
         return result
@@ -244,7 +244,7 @@ def _extract_printer_name_from_config(printer_cfg: Path) -> str | None:
         if not printer_cfg.exists():
             return None
 
-        content = printer_cfg.read_text()
+        content = printer_cfg.read_text(encoding="utf-8", errors="replace")
 
         # Look for explicit name comments
         # Patterns: # Name: Printer X, # Printer: X, # Machine: X
@@ -276,8 +276,14 @@ def discover_printer_instances(base_path: Path = None) -> list[dict[str, Any]]:
 
     printers = []
 
-    # Scan for printer_N_data directories
-    for printer_dir in sorted(base_path.glob("printer_*_data")):
+    def _printer_dir_num(p: Path) -> int:
+        try:
+            return int(p.name.split("_")[1])
+        except (IndexError, ValueError):
+            return -1
+
+    # Scan for printer_N_data directories, numerically (printer_2 before printer_10)
+    for printer_dir in sorted(base_path.glob("printer_*_data"), key=lambda p: (_printer_dir_num(p), p.name)):
         if not printer_dir.is_dir():
             continue
 
@@ -331,7 +337,7 @@ def discover_printer_instances(base_path: Path = None) -> list[dict[str, Any]]:
         # (those sections are in the text; we re-scan quickly)
         has_filament_sensor = False
         try:
-            cfg_text = printer_cfg.read_text(errors="replace") if printer_cfg.exists() else ""
+            cfg_text = printer_cfg.read_text(encoding="utf-8", errors="replace") if printer_cfg.exists() else ""
             has_filament_sensor = bool(re.search(
                 r'^\[filament_(?:switch|motion)_sensor', cfg_text, re.MULTILINE
             ))
@@ -394,7 +400,7 @@ def discover_printer_instances(base_path: Path = None) -> list[dict[str, Any]]:
 def _extract_moonraker_port(moonraker_conf: Path) -> int | None:
     """Extract port from [server] section of moonraker.conf."""
     try:
-        content = moonraker_conf.read_text()
+        content = moonraker_conf.read_text(encoding="utf-8", errors="replace")
         match = re.search(r'\[server\].*?port:\s*(\d+)', content, re.DOTALL)
         if match:
             return int(match.group(1))

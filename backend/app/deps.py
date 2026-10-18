@@ -136,6 +136,21 @@ def require_role(*roles: str) -> Callable:
     return _check
 
 
+# Names people see when a feature is not in their plan (shown in the app as-is).
+FEATURE_NAMES = {
+    "oee": "Production stats (OEE)",
+    "floor_plan": "The floor plan",
+    "audit_logs": "The audit log",
+    "compliance_export": "Compliance export",
+    "custom_branding": "Custom branding",
+    "email_alerts": "Email alerts",
+    "multi_user": "Extra user accounts",
+    "rbac": "User roles",
+    "sso": "Single sign-on",
+    "webhooks": "Webhooks",
+}
+
+
 def require_feature(feature: str) -> Callable:
     """
     Dependency factory: returns a Depends that checks license feature.
@@ -146,20 +161,22 @@ def require_feature(feature: str) -> Callable:
             ...
     """
 
+    name = FEATURE_NAMES.get(feature, feature.replace("_", " "))
+
     def _check():
         lic = get_license()
         # An expired or revoked key 402s here regardless of tier.
         if not lic.active:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=f"Feature '{feature}' requires an active license.",
+                detail=f"{name} needs an active license. Renew it from the plan button at the top of the screen.",
             )
         # Free tier no longer includes every feature (see
         # license._tier_to_features) — this is the actual per-feature gate.
         if feature not in lic.features:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=f"Feature '{feature}' requires a paid plan.",
+                detail=f"{name} is part of the paid plans. See the plan button at the top of the screen.",
             )
 
     return _check

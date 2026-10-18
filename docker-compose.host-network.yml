@@ -1,7 +1,15 @@
-# Optional: Layer this on with: docker compose -f docker-compose.yml -f docker-compose.host-network.yml up -d
-# This grants the MEMAR container direct access to your local network for device auto-detection.
-# Only use on Linux Docker hosts; Docker Desktop (Mac/Windows) does not expose the real LAN even in host mode.
+# Layer on docker-compose.yml to join the host network (Linux only; Docker Desktop
+# does not expose the real LAN). Used for Klipper/Moonraker auto-discovery on the LAN.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.host-network.yml up -d
+#
+# With host networking the container listens on MEMAR_PORT (default 8000) directly
+# on the host. Set MEMAR_PORT in .env if 8000 is taken. Port mappings do not apply.
 
 services:
   memar:
     network_mode: host
+    environment:
+      MEMAR_PORT: "${MEMAR_PORT:-8000}"
+    ports: !reset []
+    extra_hosts: !reset []

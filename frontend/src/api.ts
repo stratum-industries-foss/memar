@@ -204,8 +204,12 @@ export async function apiFetch(
     }
   }
 
-  // T77: Handle 402 — extract detail and fire event for UI to show
-  if (res.status === 402) {
+  // T77: Handle 402 — extract detail and fire event for UI to show.
+  // Only for actions the user took (POST/PUT/PATCH/DELETE). Background GETs of
+  // paid-only data on the Free plan are expected; the panels show their own
+  // locked state, so a toast per request would just be noise.
+  const method = (init?.method || 'GET').toUpperCase()
+  if (res.status === 402 && method !== 'GET' && method !== 'HEAD') {
     const cloned = res.clone()
     try {
       const body = await cloned.json() as { detail?: string }

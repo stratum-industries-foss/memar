@@ -7,6 +7,7 @@ app's AsyncSession and every calculation awaits select() queries. (It was
 previously written against the sync ORM API and would have failed at runtime.)
 """
 
+from .timeutil import utcnow as _utcnow
 import logging
 import statistics
 from datetime import datetime, timedelta
@@ -45,7 +46,7 @@ class FleetKPICalculator:
         if not device_ids:
             return empty
         try:
-            cutoff = datetime.utcnow() - timedelta(hours=hours)
+            cutoff = _utcnow() - timedelta(hours=hours)
             rows = (await self.db.execute(
                 select(FleetStatusLog.state, FleetStatusLog.online)
                 .where(
@@ -77,7 +78,7 @@ class FleetKPICalculator:
         try:
             daily = []
             for day_offset in range(days):
-                day_start = datetime.utcnow() - timedelta(days=day_offset + 1)
+                day_start = _utcnow() - timedelta(days=day_offset + 1)
                 day_end = day_start + timedelta(days=1)
                 where_clause = [
                     JobLog.created_at >= day_start,
@@ -116,7 +117,7 @@ class FleetKPICalculator:
 
         empty = {"error_rate_pct": 0.0, "failed_jobs": 0, "total_jobs": 0, "period_hours": hours}
         try:
-            cutoff = datetime.utcnow() - timedelta(hours=hours)
+            cutoff = _utcnow() - timedelta(hours=hours)
             total = (await self.db.execute(
                 select(func.count(JobLog.id)).where(JobLog.created_at >= cutoff)
             )).scalar() or 0
@@ -192,7 +193,7 @@ class FleetKPICalculator:
 
         empty = {"jobs": 0, "jobs_per_day": 0.0, "period_hours": hours}
         try:
-            cutoff = datetime.utcnow() - timedelta(hours=hours)
+            cutoff = _utcnow() - timedelta(hours=hours)
             jobs = (await self.db.execute(
                 select(func.count(JobLog.id)).where(JobLog.created_at >= cutoff)
             )).scalar() or 0
@@ -221,7 +222,7 @@ class FleetKPICalculator:
         if not device_ids:
             return empty
         try:
-            cutoff = datetime.utcnow() - timedelta(days=days)
+            cutoff = _utcnow() - timedelta(days=days)
             rows = (await self.db.execute(
                 select(FleetStatusLog.device_id, FleetStatusLog.state, FleetStatusLog.online)
                 .where(FleetStatusLog.device_id.in_(device_ids),
@@ -280,7 +281,7 @@ class FleetKPICalculator:
         empty = {"cost_total": 0.0, "cost_per_day": 0.0, "cost_per_part": None,
                  "filament_g": 0, "price_per_kg": price_per_kg, "period_hours": hours}
         try:
-            cutoff = datetime.utcnow() - timedelta(hours=hours)
+            cutoff = _utcnow() - timedelta(hours=hours)
             grams = (await self.db.execute(
                 select(func.coalesce(func.sum(SpoolLog.filament_used_g), 0))
                 .where(SpoolLog.created_at >= cutoff)

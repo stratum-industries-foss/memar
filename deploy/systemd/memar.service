@@ -8,16 +8,18 @@ Type=exec
 User=memar
 Group=memar
 WorkingDirectory=/opt/memar/current/backend
+Environment=MEMAR_ENV=production
+Environment=MEMAR_PORT=8000
 EnvironmentFile=/etc/memar.env
-ExecStart=/opt/memar/current/backend/.venv/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port 9000
+ExecStart=/opt/memar/current/backend/.venv/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port ${MEMAR_PORT}
 Restart=on-failure
 RestartSec=2
 NoNewPrivileges=yes
 PrivateTmp=yes
-ProtectSystem=full
+ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/opt/memar /var/lib/memar
-MemoryMax=768M
+ReadWritePaths=/var/lib/memar /opt/memar/shared
+MemoryMax=1G
 TasksMax=512
 
 [Install]

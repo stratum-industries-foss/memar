@@ -226,7 +226,7 @@ export const AnalyticsDashboard: React.FC = () => {
               <h2 className={styles['analytics-panel-title']}>OEE Trend (7-Day)</h2>
               <Suspense fallback={<ShimmerLoader rows={1} height="300px" />}>
                 <AnimatedChart delay={0}>
-                  <ResponsiveContainer width="100%" height="300px">
+                  <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={oeeTrend}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-strong)" />
                       <XAxis dataKey="date" stroke="var(--border-strong)" />
@@ -256,7 +256,7 @@ export const AnalyticsDashboard: React.FC = () => {
               {topErrors.length > 0 ? (
                 <Suspense fallback={<ShimmerLoader rows={1} height="300px" />}>
                   <AnimatedChart delay={0.1}>
-                    <ResponsiveContainer width="100%" height="300px">
+                    <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={topErrors}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-strong)" />
                         <XAxis dataKey="mode" angle={-45} textAnchor="end" height={80} stroke="var(--border-strong)" />

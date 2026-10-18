@@ -96,7 +96,11 @@ docs/internal/INFLUENCER_LIST.md
 deploy/systemd/memar.env
 deploy/systemd/farm-dashboard.env
 
-# internal material never ships publicly
-docs/internal/
 frontend/.lighthouseci/
 .cde-test/
+
+# config write lock (created at runtime)
+config/*.lock
+
+# Bulk media (5 GB+): never in git. Local only.
+marketing/

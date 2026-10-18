@@ -6,7 +6,7 @@ const FOCUSABLE_SELECTOR = 'a, button:not([disabled]), input:not([disabled]), te
  * Focus trap hook for modal overlays.
  * Traps Tab/Shift+Tab within the element, stores/restores previous focus.
  */
-export function useFocusTrap<T extends HTMLElement>(isOpen: boolean): React.RefObject<T> {
+export function useFocusTrap<T extends HTMLElement>(isOpen: boolean): React.RefObject<T | null> {
   const ref = useRef<T>(null)
   const previousActiveRef = useRef<HTMLElement | null>(null)
 

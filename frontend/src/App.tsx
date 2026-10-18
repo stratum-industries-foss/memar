@@ -26,6 +26,8 @@ import { ConfirmDialog } from './ConfirmDialog'
 import { AlphaAcknowledgeModal } from './AlphaAcknowledgeModal'
 import { AdminPanel } from './AdminPanel'
 import { SetupWizard } from './SetupWizard'
+import { FirstRunSetup, fetchSetupStatus } from './FirstRunSetup'
+import type { FirstRunStatus } from './FirstRunSetup'
 import { ExcludeObjectsMap, hasPolygonData } from './ExcludeObjectsMap'
 import { BedMeshPanel } from './BedMeshPanel'
 import { OverviewGraphs } from './drawers/OverviewGraphs'
@@ -1313,6 +1315,10 @@ export default function App() {
 
   // Login state
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  // First-run gate: GET /api/setup/status runs before login is shown.
+  // firstRunStatus.claimed === false renders the FirstRunSetup screen instead.
+  const [setupChecked, setSetupChecked] = useState<boolean>(false)
+  const [firstRunStatus, setFirstRunStatus] = useState<FirstRunStatus | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   // Keep ref in sync for use in WS reconnect closure (avoids stale closure bug)
   React.useEffect(() => { accessTokenRef.current = accessToken }, [accessToken])
@@ -1327,7 +1333,7 @@ export default function App() {
   const [pwChangeConfirm, setPwChangeConfirm] = useState('')
   const [pwChangeError, setPwChangeError] = useState('')
   const [pwChangeBusy, setPwChangeBusy] = useState(false)
-  const [ssoConfig, setSsoConfig] = useState<{ oidc: boolean; ldap: boolean }>({ oidc: false, ldap: false })
+  const [ssoConfig, setSsoConfig] = useState<{ oidc: boolean; ldap: boolean; saml: boolean }>({ oidc: false, ldap: false, saml: false })
   const [branding, setBranding] = useState<{ company_name: string; logo_url: string | null; primary_color: string }>({ company_name: 'MEMAR', logo_url: null, primary_color: '#00a046' })
 
   // License and billing state
@@ -1432,7 +1438,9 @@ export default function App() {
 
   useEffect(() => {
     apiFetch('/api/version').then((res) => res.ok ? res.json() : null).then((data) => { if (data?.version) setVersion(data as VersionInfo) }).catch(() => undefined)
-    apiFetch('/api/settings/fleet')
+    // Fleet settings need a session; this effect re-runs when accessToken changes,
+    // so they load right after sign-in instead of failing with 401 before it.
+    if (accessToken) apiFetch('/api/settings/fleet')
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (!data) return
@@ -3072,9 +3080,17 @@ export default function App() {
         // screen offers demo — and it never silently downgrades an operator.
         hadRealSession.current = true
         setAccessToken(authState.accessToken)
+        setSetupChecked(true)
         setIsLoggedIn(true)
         return
       }
+      // First-run gate, before any login or demo auto-login: an unclaimed MEMAR
+      // shows the setup screen. A failed status read falls through to login.
+      const setupStatus = await fetchSetupStatus()
+      if (!mounted) return
+      setFirstRunStatus(setupStatus)
+      setSetupChecked(true)
+      if (setupStatus && setupStatus.claimed === false) return
       // Skip demo auto-login when a password reset token is present in the URL
       if (rt) return
       try {
@@ -3227,7 +3243,7 @@ export default function App() {
   useEffect(() => {
     apiFetch('/api/auth/sso/config')
       .then((r) => (r.ok ? r.json() : null))
-      .then((c) => { if (c) setSsoConfig({ oidc: !!c.oidc, ldap: !!c.ldap }) })
+      .then((c) => { if (c) setSsoConfig({ oidc: !!c.oidc, ldap: !!c.ldap, saml: !!c.saml }) })
       .catch(() => { /* no SSO configured */ })
   }, [])
 
@@ -3614,6 +3630,31 @@ export default function App() {
 
   // Login gate: show login screen if not authenticated
   if (!isLoggedIn) {
+    // Wait for the setup-status check so an unclaimed MEMAR never flashes login.
+    if (!setupChecked) {
+      return <main className="login-screen" aria-busy="true" />
+    }
+    if (firstRunStatus && firstRunStatus.claimed === false) {
+      return (
+        <FirstRunSetup
+          status={firstRunStatus}
+          onClaimed={(username) => {
+            // Same session setup as handleLogin, then the fleet loads and the
+            // SetupWizard opens for the admin with zero devices.
+            hadRealSession.current = true
+            demoModeRef.current = false
+            setAccessToken(authState.accessToken)
+            setCurrentUsername(username)
+            setFirstRunStatus(null)
+            setIsLoggedIn(true)
+          }}
+          onAlreadyClaimed={() => {
+            setFirstRunStatus({ claimed: true })
+            setLoginError('This MEMAR is already set up. Please sign in.')
+          }}
+        />
+      )
+    }
     // If a reset token is in the URL, show the reset form instead of login
     if (resetTokenFromUrl) {
       // Success state: show prominent success modal that auto-disappears
@@ -3760,12 +3801,17 @@ export default function App() {
             onClick={() => { setShowForgotModal(true); setForgotMsg(''); setForgotUsername('') }}
           >Forgot password?</button>
         </form>
-        {(ssoConfig.oidc || ssoConfig.ldap) && (
+        {(ssoConfig.oidc || ssoConfig.ldap || ssoConfig.saml) && (
           <div className="sso-options" style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>or</div>
             {ssoConfig.oidc && (
               <button type="button" onClick={() => { window.location.href = '/api/auth/sso/oidc/login' }}>
                 Sign in with SSO
+              </button>
+            )}
+            {ssoConfig.saml && (
+              <button type="button" onClick={() => { window.location.href = '/api/auth/saml/login' }}>
+                Sign in with SAML
               </button>
             )}
             {ssoConfig.ldap && (
@@ -3837,12 +3883,10 @@ export default function App() {
       <header className="topbar" role="banner">
         <div className="topbar-title-column">
           <h1>{branding.logo_url ? <img src={branding.logo_url} alt={branding.company_name} style={{ maxHeight: 36 }} /> : branding.company_name}</h1>
-          <p>Universal equipment fleet monitor</p>
-          <span className="topbar-meta">
+          <p>Fleet monitor for 3D printers, CNC and lasers</p>
+          <span className="topbar-meta" title={`Layout ${dashboardSettings.card_layout} · ${dashboardSettings.card_density} density · refresh every ${dashboardSettings.metrics_refresh_seconds}s${metrics ? ` · window ${metrics.window_limit} jobs` : ''}`}>
             Updated {formatTimestamp(fleet.generated_at)}
-            {version && <> · v{version.version} · {version.build_id}</>}
-            {metrics && <> · Window: {metrics.window_limit} jobs</>}
-            {' '}· Layout {dashboardSettings.card_layout} · {dashboardSettings.card_density} · {dashboardSettings.metrics_refresh_seconds}s
+            {version && <> · MEMAR {version.version} ({version.build_id})</>}
           </span>
         </div>
         <div className="inline-actions topbar-actions">
@@ -3856,8 +3900,15 @@ export default function App() {
               title={`License: ${licenseStatus.tier} tier`}
             >
               {licenseStatus.tier === 'free'
-                ? '⚠ Free — Upgrade'
-                : `✓ ${licenseStatus.tier.charAt(0).toUpperCase() + licenseStatus.tier.slice(1)}${licenseStatus.days_remaining != null ? ` · ${licenseStatus.days_remaining}d` : ' · Perpetual'}`}
+                ? 'Free plan · Upgrade'
+                : (() => {
+                    const plan = licenseStatus.tier.replace(/^airgap_?/, 'Air-Gap ').split(/[_\s]+/).filter(Boolean)
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                    // Monthly keys renew themselves; only show days when the end is near.
+                    const d = licenseStatus.days_remaining
+                    const nearEnd = d != null && d <= (licenseStatus.tier.startsWith('airgap') ? 30 : 7)
+                    return `${plan} plan${nearEnd ? ` · ${d} day${d === 1 ? '' : 's'} left` : ''}`
+                  })()}
             </button>
           )}
           <button
@@ -7370,7 +7421,7 @@ const PrinterCard = React.memo(function PrinterCard({
           <div className="printer-controls">
             {canWrite && ['fdm','idex'].includes(ptype) && (
               <div className="card-tuning-row">
-                <span>Spd</span>
+                <span title="Print speed: how fast the printer moves">Speed</span>
                 <input type="range" min="50" max="150" step="5"
                   value={speedDrag ?? Math.round((printer.speed_factor ?? 1) * 100)}
                   onChange={e => setSpeedDrag(Number(e.target.value))}
@@ -7382,7 +7433,7 @@ const PrinterCard = React.memo(function PrinterCard({
             )}
             {canWrite && ['fdm','idex'].includes(ptype) && (
               <div className="card-tuning-row">
-                <span>Flw</span>
+                <span title="Flow: how much plastic is pushed out">Flow</span>
                 <input type="range" min="50" max="150" step="5"
                   value={flowDrag ?? Math.round((printer.flow_factor ?? 1) * 100)}
                   onChange={e => setFlowDrag(Number(e.target.value))}

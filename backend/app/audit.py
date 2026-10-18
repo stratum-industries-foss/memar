@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .db import get_db
 from .deps import require_feature, require_role
 from .models_db import AuditLog
+from .audit_chain import append_chained, verify_chain
 from ._limiter import _client_key
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,8 @@ async def record_audit(
     fail the request it is recording.
     """
     try:
-        db.add(
+        await append_chained(
+            db,
             AuditLog(
                 user_id=(user or {}).get("id"),
                 username=(user or {}).get("username"),
@@ -55,7 +57,7 @@ async def record_audit(
                 resource=resource,
                 detail=json.dumps(detail) if isinstance(detail, (dict, list)) else detail,
                 ip_address=client_ip(request),
-            )
+            ),
         )
         await db.commit()
     except Exception as e:  # noqa: BLE001
@@ -80,7 +82,8 @@ async def record_audit_batch(db: AsyncSession, entries: list[dict]) -> None:
         for entry in entries:
             user = entry.get("user")
             detail = entry.get("detail")
-            db.add(
+            await append_chained(
+                db,
                 AuditLog(
                     user_id=(user or {}).get("id"),
                     username=(user or {}).get("username"),
@@ -88,7 +91,7 @@ async def record_audit_batch(db: AsyncSession, entries: list[dict]) -> None:
                     resource=entry.get("resource"),
                     detail=json.dumps(detail) if isinstance(detail, (dict, list)) else detail,
                     ip_address=client_ip(entry.get("request")),
-                )
+                ),
             )
         await db.commit()
     except Exception as e:  # noqa: BLE001
@@ -100,6 +103,17 @@ async def record_audit_batch(db: AsyncSession, entries: list[dict]) -> None:
 
 
 audit_router = APIRouter(prefix="/api/admin", tags=["audit"])
+
+
+@audit_router.get("/audit/verify")
+async def verify_audit(
+    _: dict = Depends(require_role("admin")),
+    __: None = Depends(require_feature("audit_logs")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Re-check the audit hash chain. intact=false names the first altered row."""
+    report = await verify_chain(db)
+    return report.as_dict()
 
 
 @audit_router.get("/audit")

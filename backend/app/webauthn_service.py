@@ -18,7 +18,7 @@ RP_ID = os.getenv("MEMAR_RP_ID") or os.getenv("MEMAR_DOMAIN", "localhost")
 if RP_ID == "localhost":
     logger.warning("WebAuthn RP_ID is localhost — set MEMAR_RP_ID or MEMAR_DOMAIN for production (router mounted)")
 RP_NAME = os.getenv("MEMAR_RP_NAME", "MEMAR")
-ORIGIN = os.getenv("MEMAR_ORIGIN", "http://localhost:9000")  # Full origin URL
+ORIGIN = os.getenv("MEMAR_ORIGIN") or os.getenv("MEMAR_PUBLIC_URL", "").rstrip("/") or f"http://localhost:{os.getenv('MEMAR_PORT', '8000')}"  # Full origin URL
 if "localhost" in ORIGIN and RP_ID != "localhost":
     logger.warning("WebAuthn ORIGIN contains localhost while RP_ID is production — mismatch risk")
 CHALLENGE_TTL_MINUTES = 10

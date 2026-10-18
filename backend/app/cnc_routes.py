@@ -1,5 +1,6 @@
 """CNC machine metrics endpoints (GRBL, LinuxCNC, MACH3, OPC-UA, Sinumerik)."""
 
+from .timeutil import utcnow as _utcnow
 import asyncio
 from functools import lru_cache
 from datetime import datetime, timedelta, timezone
@@ -311,7 +312,7 @@ async def get_cnc_metrics_aggregated(
     try:
         # cnc_metrics_log timestamps are written via SQL server_default now()
         # (UTC on SQLite) — filter against utcnow() to match.
-        cutoff = datetime.utcnow() - timedelta(minutes=minutes)
+        cutoff = _utcnow() - timedelta(minutes=minutes)
         rows = (await db.execute(
             select(CNCMetricsLog)
             .where(

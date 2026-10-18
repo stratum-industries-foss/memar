@@ -48,6 +48,16 @@ def _resolve_reset_recipient(username: str) -> "str | None":
     return admin_email or None
 
 
+
+def _public_url() -> str:
+    """Base URL for links in outgoing mail: MEMAR_PUBLIC_URL when set, else the
+    same address the setup link uses (LAN address and port). Never a public
+    default; empty when neither is known so callers can say 'not configured'."""
+    explicit = os.getenv("MEMAR_PUBLIC_URL", "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    return ""
+
 async def send_license_email(email: str, tier: str, license_key: str) -> bool:
     """Send license key via SMTP. Returns True on success."""
     try:
@@ -119,7 +129,7 @@ async def send_payment_failed_email(email: str, amount_due_cents: int) -> bool:
     """Send payment failure notice via SMTP. Returns True on success."""
     try:
         amount_str = f"{amount_due_cents / 100:.2f}"
-        public_url = os.getenv('MEMAR_PUBLIC_URL')
+        public_url = _public_url()
         billing_url = f"{public_url}/?billing=update" if public_url else "[billing URL not configured]"
         subject = "MEMAR Payment Failed"
 
@@ -187,7 +197,7 @@ async def send_renewal_warning_email(
     try:
         from datetime import datetime as _dt
         expires_str = expires_at.strftime("%B %d, %Y") if hasattr(expires_at, "strftime") else str(expires_at)
-        public_url = os.getenv("MEMAR_PUBLIC_URL", "")
+        public_url = _public_url()
         billing_url = f"{public_url}/?billing=true" if public_url else "[billing URL not configured]"
         subject = f"MEMAR {tier.title()} license expires in {days_left} day{'s' if days_left != 1 else ''}"
 
@@ -306,7 +316,7 @@ If you did not request this, ignore this email — no action is needed.
 async def send_welcome_email(email: str, tier: str) -> bool:
     """Send a welcome / getting-started email after a successful purchase."""
     try:
-        public_url = os.getenv("MEMAR_PUBLIC_URL", "").rstrip("/")
+        public_url = _public_url().rstrip("/")
         docs_url = f"{public_url}/docs" if public_url else "https://stratum.industries/memar/docs"
         subject = f"Welcome to MEMAR {tier.title()} — getting started"
         body_text = f"""Welcome to MEMAR {tier.title()}!
@@ -364,7 +374,7 @@ async def send_cancellation_email(email: str, tier: str, expires_at) -> bool:
     """Send a subscription cancellation confirmation. Returns True on success."""
     try:
         expires_str = expires_at.strftime("%B %d, %Y") if hasattr(expires_at, "strftime") else str(expires_at)
-        public_url = os.getenv("MEMAR_PUBLIC_URL", "").rstrip("/")
+        public_url = _public_url().rstrip("/")
         billing_url = f"{public_url}/?billing=true" if public_url else ""
         subject = f"MEMAR {tier.title()} subscription cancelled"
         body_text = f"""Your MEMAR {tier.title()} subscription has been cancelled.

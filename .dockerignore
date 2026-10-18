@@ -1,8 +1,15 @@
 .git/
 .github/
+.gitea/
+# internal tooling (not part of the image)
+.nava-cde/
+.cde-test/
 node_modules/
-frontend/node_modules/
+**/node_modules/
+frontend_dist/
+**/.venv/
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
@@ -15,14 +22,22 @@ htmlcov/
 dist/
 *.log
 logs/
+# Runtime state (keys, databases) at ANY depth, not only the repo root:
+data/
+**/data/
+**/*.secret
+**/jwt-secret
 *.sqlite
 *.db
 .env
 .env.*
 !.env.example
-docs/B2B_*.md
-docs/INFLUENCER_*.md
+docs/
+marketing/
+screenshots/
+deploy/
 config/devices.yaml
 config/*.bak-*
 config/*.tmp
-config/devices.yaml
+
+config/*.lock

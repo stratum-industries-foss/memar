@@ -132,7 +132,7 @@ export const Modal: React.FC<ModalProps> = ({
       >
         {title && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 id="modal-title">{title}</h2>
+            <h2 id="modal-title" style={{ marginBottom: 12 }}>{title}</h2>
             <button
               type="button"
               className="modal-close"

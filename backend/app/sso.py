@@ -39,6 +39,7 @@ from .db import get_db
 from .deps import require_feature, require_role
 from .license import get_license
 from .models_db import RefreshToken, SSOSettings, User
+from .firstrun import public_base_url as _public_base_url
 
 logger = logging.getLogger(__name__)
 
@@ -84,9 +85,12 @@ async def sso_config(db: AsyncSession = Depends(get_db)) -> dict:
     licensed = lic.active and "sso" in lic.features
     oidc = await _oidc_settings(db)
     ldap = await _ldap_settings(db)
+    saml = (await db.execute(select(SSOSettings).where(SSOSettings.id == 1))).scalar_one_or_none()
+    saml_ok = bool(saml and saml.saml_idp_sso_url and saml.saml_idp_cert_pem and saml.saml_idp_entity_id)
     return {
         "oidc": bool(licensed and oidc["issuer"] and oidc["client_id"]),
         "ldap": bool(licensed and ldap["server"] and ldap["dn_template"]),
+        "saml": bool(licensed and saml_ok),
     }
 
 
@@ -105,6 +109,11 @@ class SSOSettingsUpdate(BaseModel):
     ldap_user_dn_template: str | None = None
     ldap_default_role: str | None = None
     sso_default_role: str | None = None
+    # SAML 2.0. The IdP certificate is public, so it is stored and returned in full.
+    saml_idp_entity_id: str | None = None
+    saml_idp_sso_url: str | None = None
+    saml_idp_cert_pem: str | None = None
+    saml_sp_entity_id: str | None = None
 
 
 @sso_admin_router.get("/settings")
@@ -121,6 +130,11 @@ async def get_sso_settings(db: AsyncSession = Depends(get_db),
         "ldap_user_dn_template": (s.ldap_user_dn_template if s else None) or "",
         "ldap_default_role": (s.ldap_default_role if s else None) or "",
         "sso_default_role": (s.sso_default_role if s else None) or "",
+        "saml_idp_entity_id": (s.saml_idp_entity_id if s else None) or "",
+        "saml_idp_sso_url": (s.saml_idp_sso_url if s else None) or "",
+        "saml_idp_cert_pem": (s.saml_idp_cert_pem if s else None) or "",
+        "saml_sp_entity_id": (s.saml_sp_entity_id if s else None) or "",
+        "saml_configured": bool(s and s.saml_idp_sso_url and s.saml_idp_cert_pem and s.saml_idp_entity_id),
         "env_defaults": {
             "oidc_issuer_set": bool(os.getenv("MEMAR_OIDC_ISSUER")),
             "oidc_client_id_set": bool(os.getenv("MEMAR_OIDC_CLIENT_ID")),
@@ -152,6 +166,10 @@ async def put_sso_settings(body: SSOSettingsUpdate, db: AsyncSession = Depends(g
     _apply("ldap_user_dn_template", body.ldap_user_dn_template)
     _apply("ldap_default_role", body.ldap_default_role)
     _apply("sso_default_role", body.sso_default_role)
+    _apply("saml_idp_entity_id", body.saml_idp_entity_id)
+    _apply("saml_idp_sso_url", body.saml_idp_sso_url)
+    _apply("saml_idp_cert_pem", body.saml_idp_cert_pem)
+    _apply("saml_sp_entity_id", body.saml_sp_entity_id)
 
     await db.commit()
     return await get_sso_settings(db=db, _=None)
@@ -329,7 +347,7 @@ async def oidc_callback(code: str, state: str, db: AsyncSession = Depends(get_db
     if not username:
         raise HTTPException(status_code=400, detail="OIDC token missing a verified email or sub claim")
     issued = await _provision_and_issue(db, username=username, provider="oidc")
-    base = os.getenv("MEMAR_PUBLIC_URL", "http://localhost:9000").rstrip("/")
+    base = _public_base_url()
     frag = urlencode({"sso_access": issued["access_token"], "sso_refresh": issued["refresh_token"]})
     return RedirectResponse(f"{base}/#{frag}", status_code=302)
 

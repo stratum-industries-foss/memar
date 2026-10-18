@@ -377,29 +377,16 @@ async def upload_logo(
 
 @router.get("/analytics/export")
 async def export_analytics(
-    format: str = Query("csv", regex="^(csv|pdf)$"),
+    format: str = Query("csv", pattern="^(csv|pdf)$"),
     _: dict = Depends(require_role("admin")),
 ) -> dict:
-    """Export analytics data in CSV or PDF format (admin only)."""
-    try:
-        # TODO: Implement real analytics export
-        # - Query analytics data from database
-        # - Format as CSV or PDF
-        # - Return downloadable file
-
-        logger.info(f"Exporting analytics as {format}")
-
-        if format == "csv":
-            content = b"timestamp,metric,value\n"
-            content += b"2026-08-06T00:00:00Z,oee,0.95\n"
-            content += b"2026-08-06T01:00:00Z,oee,0.92\n"
-        else:  # pdf
-            content = b"%PDF-1.4\n... PDF content here ..."
-
-        return {"format": format, "size": len(content)}
-    except Exception as e:
-        logger.error(f"Analytics export failed: {e}")
-        raise HTTPException(500, str(e))
+    """Analytics export is not implemented yet. The previous version returned
+    invented sample rows; that is removed. Use the compliance export for the
+    audit trail (GET /api/admin/audit/export)."""
+    raise HTTPException(
+        status_code=501,
+        detail="Analytics export is not available yet. For the audit trail, use the compliance export.",
+    )
 
 
 @router.get("/auth/methods", response_model=list)

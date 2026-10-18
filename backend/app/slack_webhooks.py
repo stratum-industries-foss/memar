@@ -1,5 +1,6 @@
 """Slack integration for real-time alerts."""
 
+from .timeutil import utcnow as _utcnow
 import os
 import json
 import httpx
@@ -64,9 +65,9 @@ class SlackIntegration:
             "color": color_map.get(severity, "#3b82f6"),
             "title": f"{icon_map.get(severity, ':bell:')} {title}",
             "text": message,
-            "ts": int(datetime.utcnow().timestamp()),
+            "ts": int(_utcnow().timestamp()),
             "fields": [
-                {"title": "Timestamp", "value": datetime.utcnow().isoformat(), "short": True},
+                {"title": "Timestamp", "value": _utcnow().isoformat(), "short": True},
             ]
         }
 

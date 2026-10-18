@@ -6,6 +6,13 @@ import os
 
 
 MEMAR_DB_PATH = os.getenv("MEMAR_DB_PATH", "./memar.db")
+# Create the database's directory on first start (a fresh Docker volume or data
+# dir may not have it yet); SQLite creates the file but not missing parents.
+if MEMAR_DB_PATH != ":memory:":
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(MEMAR_DB_PATH)), exist_ok=True)
+    except OSError:
+        pass  # startup will report the real error when the DB cannot be opened
 DATABASE_URL = f"sqlite+aiosqlite:///{MEMAR_DB_PATH}"
 
 engine = create_async_engine(
@@ -30,6 +37,14 @@ _ADDED_COLUMNS: dict[str, list[tuple[str, str]]] = {
     "webhooks": [("secret", "VARCHAR(64)")],
     "cnc_metrics_log": [("tool_id", "VARCHAR(50)")],
     "issued_licenses": [("renewal_warning_sent_at", "DATETIME")],
+    # Audit hash chain (audit.py): NULL on rows written before the chain existed.
+    "audit_log": [("prev_hash", "VARCHAR(64)"), ("row_hash", "VARCHAR(64)")],
+    "sso_settings": [
+        ("saml_idp_entity_id", "VARCHAR(500)"),
+        ("saml_idp_sso_url", "VARCHAR(500)"),
+        ("saml_idp_cert_pem", "TEXT"),
+        ("saml_sp_entity_id", "VARCHAR(500)"),
+    ],
     "users": [
         ("must_change_password", "BOOLEAN NOT NULL DEFAULT 0"),
         ("auth_provider", "VARCHAR(20) NOT NULL DEFAULT 'local'"),

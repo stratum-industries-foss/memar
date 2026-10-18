@@ -5,6 +5,7 @@ sensors POST readings) and the DB lease that keeps exactly one sampler active
 across multiple uvicorn workers.
 """
 
+from app.timeutil import utcnow as _utcnow
 import asyncio
 
 import pytest
@@ -114,7 +115,7 @@ async def test_stale_lease_can_be_taken_over(client):
     # Age the heartbeat well past the TTL.
     async with AsyncSessionLocal() as db:
         row = (await db.execute(select(SamplerLock).where(SamplerLock.id == 1))).scalar_one()
-        row.heartbeat_at = datetime.utcnow() - timedelta(seconds=tel._LEASE_TTL_S + 60)
+        row.heartbeat_at = _utcnow() - timedelta(seconds=tel._LEASE_TTL_S + 60)
         await db.commit()
     assert await tel._acquire_sampler_lease("freshWorker") is True  # takes over stale lease
     # And the previous holder is now locked out.

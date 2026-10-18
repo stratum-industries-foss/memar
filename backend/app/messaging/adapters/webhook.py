@@ -9,6 +9,7 @@ MEMAR_NOTIFY_WEBHOOK_URL is unset (with deprecation warning).
 """
 
 from __future__ import annotations
+from ...timeutil import utcnow as _utcnow
 
 import hashlib
 import hmac
@@ -146,7 +147,7 @@ class GenericWebhookAdapter(MessagingAdapter):
             async with httpx.AsyncClient(timeout=10) as client:
                 resp = await client.post(self._url, content=raw, headers=headers)
                 resp.raise_for_status()
-                self._last_ok = datetime.utcnow().isoformat() + "Z"
+                self._last_ok = _utcnow().isoformat() + "Z"
                 self._last_error = None
                 return True
         except Exception as exc:

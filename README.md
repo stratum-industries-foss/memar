@@ -62,16 +62,30 @@
 
 ## Quick Start
 
+Docker (any Linux, macOS or Windows with Docker):
+
+```bash
+git clone https://github.com/stratum-industries-foss/memar && cd memar
+docker build -t memar:local .
+docker run -d --name memar --restart unless-stopped -p 8000:8000 -v memar-data:/app/data memar:local
+docker logs memar        # prints the one-time setup link. Open it to create the admin account.
+```
+
+Nothing needs to be configured first. A prebuilt image will be published with the first release; until then, build it from source as above.
+
+Linux installer (systemd service, no Docker):
+
 ```bash
 git clone https://github.com/stratum-industries-foss/memar
 cd memar
-cp .env.example .env       # set MEMAR_JWT_SECRET and MEMAR_ADMIN_PASSWORD
-docker compose up -d
+bash install.sh
 ```
 
-Open `http://localhost:8000`. Set `MEMAR_JWT_SECRET` (`openssl rand -hex 32`) and `MEMAR_ADMIN_PASSWORD` in `.env` before starting — `docker compose` refuses to start without them. Sign in as `admin` with that password.
+The installer works on Debian, Ubuntu, Raspberry Pi OS, Armbian, Fedora/RHEL, Arch and openSUSE, on x86_64, arm64 and armv7. It installs dependencies, builds the UI, installs the `memar` service and prints the setup link. Options: `--port N`, `--docker` (installs Docker from your distro and starts MEMAR with compose), `--no-service` (no systemd; prints a foreground run command), `--license KEY` or `--license-file PATH` (paid and air-gap licences; the key is never printed). Afterwards, `sudo memar setup-link` shows the link again.
 
-See [INSTALL.md](INSTALL.md) for full setup including dev mode and Stripe billing.
+Paid or air-gap licence: add `-e MEMAR_LICENSE_KEY=...` to the `docker run` command, or enter the key in the setup screen or later under Settings → License. An air-gap licence makes the setup code mandatory.
+
+See [INSTALL.md](INSTALL.md) for full setup, optional settings and dev mode.
 
 ---
 

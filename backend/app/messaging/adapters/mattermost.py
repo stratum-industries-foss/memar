@@ -11,6 +11,7 @@ Env vars:
 """
 
 from __future__ import annotations
+from ...timeutil import utcnow as _utcnow
 
 import asyncio
 import logging
@@ -90,7 +91,7 @@ class MattermostAdapter(MessagingAdapter):
                     headers=headers,
                 )
                 r.raise_for_status()
-                self._last_ok = datetime.utcnow().isoformat() + "Z"
+                self._last_ok = _utcnow().isoformat() + "Z"
                 self._last_error = None
                 return True
         except Exception as exc:
@@ -112,7 +113,7 @@ class MattermostAdapter(MessagingAdapter):
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(self._webhook_url, json=payload)
                 r.raise_for_status()
-                self._last_ok = datetime.utcnow().isoformat() + "Z"
+                self._last_ok = _utcnow().isoformat() + "Z"
                 self._last_error = None
                 return True
         except Exception as exc:

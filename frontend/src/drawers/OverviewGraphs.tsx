@@ -82,7 +82,7 @@ const SuccessRateChart: React.FC<{ metric?: OverviewGraphsProps['currentMetric']
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [value, 'Jobs']}
+              formatter={(value) => [Number(value), 'Jobs']}
               contentStyle={{ background: 'var(--surface-base)', border: '1px solid var(--border-default)' }}
             />
           </PieChart>

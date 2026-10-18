@@ -10,6 +10,7 @@ write rows via AsyncSessionLocal. Device identity comes from config, so we point
 get_config() at a temp devices.yaml containing CNC machines.
 """
 
+from app.timeutil import utcnow as _utcnow
 from datetime import datetime, timedelta
 
 import pytest
@@ -51,7 +52,7 @@ async def _seed(device_id, samples):
     from app.db import AsyncSessionLocal
     from app.models_db import CNCMetricsLog
 
-    now = datetime.utcnow()
+    now = _utcnow()
     async with AsyncSessionLocal() as db:
         for minutes_ago, psi in samples:
             db.add(CNCMetricsLog(
@@ -248,7 +249,7 @@ async def test_depletion_rate_positive_when_psi_dropping(client, clean_cnc_metri
     from app.models_db import CNCMetricsLog
     from app.coolant_models import CoolantDepletionPredictor
 
-    now = datetime.utcnow()
+    now = _utcnow()
     async with AsyncSessionLocal() as db:
         db.add(CNCMetricsLog(
             device_id="mill_depl", timestamp=now - timedelta(hours=25),

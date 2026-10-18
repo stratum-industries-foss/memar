@@ -1,6 +1,7 @@
 """Fleet KPI: per-job OEE population (trend NULL-bug fix), fleet aggregate,
 throughput. Guards the regression where job_log.oee was always NULL."""
 
+from app.timeutil import utcnow as _utcnow
 from datetime import datetime, timedelta
 
 import pytest
@@ -64,9 +65,9 @@ async def test_oee_trend_nonzero(client):
 
     async with AsyncSessionLocal() as db:
         db.add(JobLog(device_id="p1", job_name="a", status="completed", oee=0.8,
-                      created_at=datetime.utcnow() - timedelta(hours=6)))
+                      created_at=_utcnow() - timedelta(hours=6)))
         db.add(JobLog(device_id="p1", job_name="b", status="completed", oee=0.6,
-                      created_at=datetime.utcnow() - timedelta(hours=8)))
+                      created_at=_utcnow() - timedelta(hours=8)))
         await db.commit()
         trend = await FleetKPICalculator(db).calculate_oee_trend(days=7)
     assert any(d["oee"] > 0 for d in trend)
@@ -81,7 +82,7 @@ async def test_throughput(client):
     async with AsyncSessionLocal() as db:
         for i in range(3):
             db.add(JobLog(device_id="p1", job_name=f"j{i}", status="completed",
-                          created_at=datetime.utcnow() - timedelta(hours=1)))
+                          created_at=_utcnow() - timedelta(hours=1)))
         await db.commit()
         thru = await FleetKPICalculator(db).calculate_throughput(hours=24)
     assert thru["jobs"] >= 3 and thru["jobs_per_day"] >= 3
@@ -117,7 +118,7 @@ async def test_reliability_excludes_always_offline_device(kpi_config):
     from app.models_db import FleetStatusLog
     from app.analytics import FleetKPICalculator
 
-    base = datetime.utcnow() - timedelta(hours=2)
+    base = _utcnow() - timedelta(hours=2)
     async with AsyncSessionLocal() as db:
         # p1: up,up,up,down,up  → exactly 1 up->down failure and 1 down sample.
         for i, (st, on) in enumerate(
@@ -148,7 +149,7 @@ async def _seed_jobs(rows: list[tuple[str, str | None]]) -> None:
     async with AsyncSessionLocal() as db:
         for device_id, job_name in rows:
             db.add(JobLog(device_id=device_id, job_name=job_name, status="completed",
-                          created_at=datetime.utcnow() - timedelta(hours=1)))
+                          created_at=_utcnow() - timedelta(hours=1)))
         await db.commit()
 
 

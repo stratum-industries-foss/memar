@@ -12,6 +12,7 @@ reading (only coolant_active on/off). The column is reserved for a future
 pressure-sensor source; coolant-PSI analytics correctly report no_data until then.
 """
 
+from .timeutil import utcnow as _utcnow
 import asyncio
 import logging
 import os
@@ -47,7 +48,7 @@ async def _acquire_sampler_lease(holder: str | None = None) -> bool:
     renewed — the sampler lease. Guarantees a single active sampler across
     multiple uvicorn workers. `holder` is injectable for testing."""
     holder = holder or _HOLDER
-    now = datetime.utcnow()  # naive UTC — consistent with the stored value
+    now = _utcnow()  # naive UTC — consistent with the stored value
     try:
         async with AsyncSessionLocal() as db:
             row = (await db.execute(
@@ -166,7 +167,7 @@ async def record_job_completion(device_id: str, job_name: str | None, status: st
                 status=status,
                 failure_reason=failure_reason,
                 oee=oee,
-                ended_at=datetime.utcnow(),  # naive UTC — matches backfill + analytics + the column
+                ended_at=_utcnow(),  # naive UTC — matches backfill + analytics + the column
                 duration_s=duration_s,
             ))
             await db.commit()
@@ -211,7 +212,7 @@ async def _backfill_job_history_impl(printers=None, limit: int = 100, lookback_d
 
     if printers is None:
         printers = [p for p in get_config().printers if p.enabled]
-    cutoff = datetime.utcnow() - timedelta(days=lookback_days)
+    cutoff = _utcnow() - timedelta(days=lookback_days)
     inserted = 0
     for printer in printers:
         try:
@@ -301,7 +302,7 @@ async def _prune_old_telemetry() -> int:
     """Delete telemetry rows older than RETENTION_DAYS so the time-series tables
     don't grow unbounded (sampler writes ~1 row/device/minute). Best-effort."""
     from sqlalchemy import delete
-    cutoff = datetime.utcnow() - timedelta(days=RETENTION_DAYS)
+    cutoff = _utcnow() - timedelta(days=RETENTION_DAYS)
     deleted = 0
     try:
         async with AsyncSessionLocal() as db:

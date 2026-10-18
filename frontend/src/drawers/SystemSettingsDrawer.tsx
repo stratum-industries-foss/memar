@@ -134,9 +134,9 @@ const SettingsDrawer = React.memo(function SettingsDrawer({
           type: 'select',
           value: settings.tier || 'starter',
           options: [
-            { label: 'Starter (5 devices)', value: 'starter' },
-            { label: 'Pro (20 devices)', value: 'pro' },
-            { label: 'Enterprise (unlimited)', value: 'enterprise' },
+            { label: 'Free (5 devices)', value: 'starter' },
+            { label: 'Pro (40 devices)', value: 'pro' },
+            { label: 'Enterprise (10,000 devices)', value: 'enterprise' },
           ],
         },
       ],

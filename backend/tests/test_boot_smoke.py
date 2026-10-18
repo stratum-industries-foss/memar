@@ -37,7 +37,9 @@ def test_openapi_schema_generates():
     "/stripe/webhook",
 ])
 def test_critical_route_is_registered(path):
-    registered = {getattr(r, "path", None) for r in app.routes}
+    # Use the OpenAPI schema (public API). Newer FastAPI keeps included routers
+    # nested, so a flat walk of app.routes no longer lists every path.
+    registered = set(app.openapi()["paths"])
     assert path in registered, f"critical route {path} is not mounted"
 
 

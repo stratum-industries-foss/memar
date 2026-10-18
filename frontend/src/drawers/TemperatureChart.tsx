@@ -137,7 +137,7 @@ const TemperatureChart: React.FC<TemperatureChartProps> = ({
                 borderRadius: '4px',
               }}
               formatter={(value: any) => value?.toFixed(1)}
-              labelFormatter={(label) => new Date(label).toLocaleString()}
+              labelFormatter={(label) => new Date(label as string | number).toLocaleString()}
             />
             <Line
               dataKey="nozzle"

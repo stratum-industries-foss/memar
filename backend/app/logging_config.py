@@ -1,12 +1,27 @@
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 import sys
 from pathlib import Path
 
+
+def log_dir() -> Path:
+    """MEMAR_LOG_DIR if set, else <repo>/logs (source checkouts)."""
+    env = os.getenv("MEMAR_LOG_DIR")
+    return Path(env) if env else Path(__file__).parent.parent.parent / "logs"
+
+
+def log_file() -> Path:
+    return log_dir() / "backend.log"
+
+
 def setup_logging():
-    """Configure comprehensive logging for the backend."""
-    log_dir = Path(__file__).parent.parent.parent / "logs"
-    log_dir.mkdir(exist_ok=True)
+    """Configure comprehensive logging for the backend.
+
+    The rotating file is optional: if the log directory is not writable (for
+    example a bind mount owned by another user), MEMAR logs to stdout only
+    instead of refusing to start.
+    """
 
     # Create formatters
     detailed_formatter = logging.Formatter(
@@ -23,12 +38,15 @@ def setup_logging():
     # websockets/httpcore every frame/request) flood backend.log at DEBUG and
     # fill the disk. Prod logs to file at INFO; raise to DEBUG temporarily for
     # debugging. App-specific DEBUG can still be added per-logger if needed.
-    file_handler = RotatingFileHandler(
-        log_dir / "backend.log", maxBytes=100_000_000, backupCount=5
-    )
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(detailed_formatter)
-    root_logger.addHandler(file_handler)
+    file_problem = None
+    try:
+        log_dir().mkdir(parents=True, exist_ok=True)
+        file_handler = RotatingFileHandler(log_file(), maxBytes=20_000_000, backupCount=5)
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(detailed_formatter)
+        root_logger.addHandler(file_handler)
+    except OSError as e:
+        file_problem = e
 
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
@@ -46,6 +64,10 @@ def setup_logging():
 
     # Get logger for app
     app_logger = logging.getLogger("memar")
+    if file_problem is not None:
+        app_logger.warning(
+            "Cannot write log file in %s (%s); logging to the console only.", log_dir(), file_problem
+        )
     return app_logger
 
 # Initialize when imported

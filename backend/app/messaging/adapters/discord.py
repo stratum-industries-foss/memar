@@ -10,6 +10,7 @@ handles commands. Webhook-URL-only mode is push-only (no commands).
 """
 
 from __future__ import annotations
+from ...timeutil import utcnow as _utcnow
 
 import asyncio
 import logging
@@ -81,7 +82,7 @@ class DiscordAdapter(MessagingAdapter):
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(self._webhook_url, json=payload)
                 r.raise_for_status()
-                self._last_ok = datetime.utcnow().isoformat() + "Z"
+                self._last_ok = _utcnow().isoformat() + "Z"
                 self._last_error = None
                 return True
         except Exception as exc:
@@ -111,7 +112,7 @@ class DiscordAdapter(MessagingAdapter):
             if event.device_id:
                 embed.set_footer(text=f"Device: {event.device_id}")
             await channel.send(embed=embed)
-            self._last_ok = datetime.utcnow().isoformat() + "Z"
+            self._last_ok = _utcnow().isoformat() + "Z"
             self._last_error = None
             return True
         except Exception as exc:

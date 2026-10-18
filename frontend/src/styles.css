@@ -267,7 +267,6 @@
 [data-theme="light"] .checkout-success-banner,
 [data-theme="light"] .tier-features li:before,
 [data-theme="light"] .svc-okmark { color: var(--color-success); }
-[data-theme="light"] .license-badge.free-tier,
 [data-theme="light"] .checkout-cancelled-banner,
 [data-theme="light"] .activation-error { color: var(--color-warning); }
 [data-theme="light"] .legend-total-count,
@@ -345,11 +344,16 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 100vw;
-  height: 100vh;
+  box-sizing: border-box;
+  width: 100%;
+  /* min-height (not height): a form taller than the window grows the page and
+     scrolls. With a fixed 100vh the centred form overflowed upwards, past the
+     top of the window, where it cannot be scrolled to. */
+  min-height: 100vh;
+  padding: 16px;
   background:
     radial-gradient(circle at top right, oklch(0.30 0.08 250 / 0.14), transparent 28%),
-    linear-gradient(180deg, var(--surface-base) 0%, oklch(0.11 0.006 264) 100%);
+    linear-gradient(180deg, var(--surface-base) 0%, color-mix(in oklch, var(--surface-base) 88%, black) 100%);
 }
 
 .login-screen form {
@@ -615,11 +619,9 @@ textarea:focus-visible,
 }
 
 .topbar-meta {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;   /* wrap at a word, never cut mid-word */
   min-width: 0;
   flex-shrink: 1;
 }
@@ -3571,14 +3573,15 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
   border-color: var(--border-subtle);
 }
 
+/* Free is a normal plan, not a problem: neutral pill with readable text. */
 .license-badge.free-tier {
-  background: oklch(0.78 0.15 48 / 0.1);
-  border-color: oklch(0.78 0.15 48 / 0.3);
-  color: oklch(0.78 0.15 48);
+  background: var(--surface-l2);
+  border-color: var(--border-default);
+  color: var(--text-primary);
 }
 
 .license-badge.free-tier:hover {
-  background: oklch(0.78 0.15 48 / 0.15);
+  background: var(--accent-bg);
 }
 
 .modal-overlay {
@@ -3667,6 +3670,21 @@ button.preset-supported { border-color: oklch(0.50 0.16 250 / 0.35); }
 
 .modal-close:hover {
   color: var(--text-primary);
+}
+
+/* Close control: a real 40px target with a clear glyph and a visible focus ring. */
+.modal-close {
+  width: 40px;
+  height: 40px;
+  font-size: 26px;
+  line-height: 1;
+  top: 10px;
+  right: 10px;
+  border-radius: 8px;
+}
+.modal-close:focus-visible {
+  outline: 2px solid var(--accent-solid);
+  outline-offset: 2px;
 }
 
 .modal-content h2 {

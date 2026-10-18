@@ -62,6 +62,8 @@ from .webhooks import router as webhooks_router, start_dispatcher, detect_state_
 from .print_monitor import start_monitor, get_monitor_state, _sse_queue, register_anomaly_callback
 from .admin import admin_router
 from .audit import audit_router, record_audit, record_audit_batch
+from . import compliance_export  # noqa: F401  (registers /api/admin/audit/export on audit_router)
+from .saml_routes import saml_router
 from .sso import sso_admin_router, sso_router
 from .branding import branding_router
 from .cnc_routes import router as cnc_router
@@ -136,7 +138,7 @@ class LicenseActivateRequest(BaseModel):
 
 
 class AddPrinterRequest(BaseModel):
-    id: str
+    id: str | None = None  # generated from the name when omitted
     name: str
     protocol: str
     base_url: str
@@ -151,6 +153,22 @@ class AddPrinterResponse(BaseModel):
     success: bool
     message: str
     printer_id: str | None = None
+    id: str | None = None  # same as printer_id; the setup wizard reads this
+
+
+def _slug(text: str) -> str:
+    import re as _re
+    s = _re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
+    return (s or "device")[:48]
+
+
+def _unique_device_id(base: str) -> str:
+    """A device id not used by any configured device: base, base-2, base-3, ..."""
+    taken = {p.id for p in get_config().printers}
+    candidate, n = base, 2
+    while candidate in taken:
+        candidate, n = f"{base}-{n}", n + 1
+    return candidate
 
 
 class CoolantReadingRequest(BaseModel):
@@ -333,7 +351,7 @@ class _SecurityHeadersMiddleware:
                     (b"strict-transport-security", b"max-age=63072000; includeSubDomains; preload"),
                     (b"referrer-policy", b"strict-origin-when-cross-origin"),
                     (b"permissions-policy", b"camera=(), microphone=(), geolocation=()"),
-                    (b"content-security-policy", b"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'"),
+                    (b"content-security-policy", b"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"),
                 ])
             await send(message)
 
@@ -427,45 +445,58 @@ async def license_renewal_warning(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
-    Returns a warning if the active license expires within 30 days.
+    Returns a warning when the active license is close to its end (30 days
+    for air-gap licences, 7 days for online plans that renew automatically).
     """
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timezone
     try:
-        # Find soonest-expiring active (not-yet-expired) license. expires_at's
-        # tz-awareness isn't guaranteed at the DB layer (SQLite stores it
-        # naive), so filtering "not yet expired" in SQL risks a naive/aware
-        # comparison mismatch — fetch activated licenses ordered soonest-first
-        # and pick the first one that's actually still valid in Python,
-        # normalizing tzinfo the same way this endpoint already does below.
-        # Without this, an old expired row (e.g. from a prior tier change)
-        # permanently wins "soonest expiring" and the banner never clears.
+        # The banner must describe the licence that is actually in force: the
+        # most recently activated row that is still valid (the loader's rule),
+        # never the soonest-expiring one — online monthly keys are re-issued
+        # every cycle and the superseded rows stay activated, so "soonest
+        # expiring" would always report a stale key. Only when no row is valid
+        # do we report the newest one as expired.
         result = await db.execute(
             select(IssuedLicense)
             .where(IssuedLicense.activated == True)
-            .order_by(IssuedLicense.expires_at.asc())
+            .order_by(IssuedLicense.activated_at.desc(), IssuedLicense.issued_at.desc())
         )
         now = datetime.now(timezone.utc)
-        lic = None
-        expires = None
-        for candidate in result.scalars():
-            candidate_expires = candidate.expires_at
-            if candidate_expires.tzinfo is None:
-                candidate_expires = candidate_expires.replace(tzinfo=timezone.utc)
-            if candidate_expires > now:
-                lic, expires = candidate, candidate_expires
-                break
-        if not lic:
+        rows = [r for r in result.scalars() if r.expires_at is not None]
+        if not rows:
             return {"warning": False}
+
+        def _aware(dt):
+            return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+        lic = next((r for r in rows if _aware(r.expires_at) > now), rows[0])
+        expires = _aware(lic.expires_at)
+        plan = str(lic.tier).replace("airgap_", "Air-Gap ").replace("airgap", "Air-Gap").replace("_", " ").title()
+        if expires <= now:
+            # Lapsed: keep warning rather than going silent at the worst moment.
+            return {
+                "warning": True,
+                "days_remaining": 0,
+                "tier": lic.tier,
+                "expired": True,
+                "message": f"Your {plan} license has ended. Renew it to restore paid features.",
+            }
 
         days_remaining = (expires - now).days
-        if days_remaining > 30:
+        # Air-gap keys are renewed by hand (12-month offline licence): warn a
+        # month ahead. Online plans are monthly keys that the heartbeat renews
+        # automatically, so a 30-day window would warn every subscriber from
+        # day one; warn only in the last week (i.e. when renewal is failing).
+        warn_days = 30 if str(lic.tier).startswith("airgap") else 7
+        if days_remaining > warn_days:
             return {"warning": False}
 
+        days = max(days_remaining, 0)
         return {
             "warning": True,
-            "days_remaining": max(days_remaining, 0),
+            "days_remaining": days,
             "tier": lic.tier,
-            "message": f"Your {lic.tier.title()} license expires in {max(days_remaining, 0)} days. Renew to avoid service interruption.",
+            "message": f"Your {plan} license ends in {days} day{'s' if days != 1 else ''}. Renew it to keep monitoring without interruption.",
         }
     except Exception as e:
         logger.warning(f"renewal-warning check failed: {e}")
@@ -655,9 +686,16 @@ async def healthz(
 
 
 @app.get("/api/readyz")
-async def readyz() -> dict[str, str]:
-    cfg = get_config()
-    return {"status": "ok", "printers": str(len([p for p in cfg.printers if p.enabled]))}
+async def readyz():
+    """Readiness: the database answers. Used by the Docker HEALTHCHECK."""
+    from sqlalchemy import text
+    try:
+        async with AsyncSessionLocal() as db:
+            await db.execute(text("SELECT 1"))
+    except Exception as e:  # noqa: BLE001
+        logger.error("readyz: database not reachable: %s", e)
+        return _JSONResponse(status_code=503, content={"status": "unavailable", "reason": "database"})
+    return {"status": "ok"}
 
 
 @app.get("/api/version")
@@ -696,7 +734,8 @@ async def support_info(
 
     recent_errors: list[str] = []
     try:
-        log_path = Path(__file__).parent.parent.parent / "logs" / "backend.log"
+        from .logging_config import log_file
+        log_path = log_file()
         if log_path.exists():
             with log_path.open("rb") as f:
                 f.seek(0, 2)
@@ -975,10 +1014,13 @@ async def add_printer(
 
     lic = get_license()
 
+    device_id = (request.id or "").strip() or _unique_device_id(_slug(request.name or request.base_url))
+    request.id = device_id
+
     # Build a schema-complete, validated device entry (43 fields, defaults filled).
     try:
         printer_model = PrinterConfig(
-            id=request.id,
+            id=device_id,
             name=request.name,
             base_url=request.base_url,
             protocol=request.protocol,
@@ -1014,6 +1056,7 @@ async def add_printer(
         success=True,
         message=f"Device {request.id} added successfully ({new_count}/{lic.device_limit} seats used)",
         printer_id=request.id,
+        id=request.id,
     )
 
 
@@ -2081,7 +2124,10 @@ app.include_router(webhooks_router)
 app.include_router(billing_router, prefix="/api")
 app.include_router(stripe_router)
 app.include_router(admin_router)
+from .setup_routes import setup_router  # noqa: E402
+app.include_router(setup_router)
 app.include_router(audit_router)
+app.include_router(saml_router)
 app.include_router(sso_router)
 app.include_router(sso_admin_router)
 app.include_router(branding_router)

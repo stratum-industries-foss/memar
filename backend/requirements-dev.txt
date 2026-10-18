@@ -1,2 +1,5 @@
 pytest>=9.0
 pytest-asyncio>=0.24
+
+# LDAP SSO (optional at runtime; required so CI runs the LDAP tests)
+ldap3==2.9.1

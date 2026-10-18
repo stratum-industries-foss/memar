@@ -580,13 +580,13 @@ async def test_renewal_warning_endpoint_ignores_stale_expired_row(admin_client):
             stripe_session_id="cs_renew_stale",
             expires_at=now - timedelta(days=200), activated=True, activated_at=now,
         ))
-        # Fresh, valid, expiring in 10 days — this is the one the banner should
-        # actually warn about.
+        # Fresh, valid, expiring in 5 days (inside the 7-day window for online
+        # plans) — this is the one the banner should actually warn about.
         db.add(IssuedLicense(
             stripe_customer_id="cus_renew_fresh", email="admin", tier="pro",
             device_limit=40, license_key="renew-fresh-key",
             stripe_session_id="cs_renew_fresh",
-            expires_at=now + timedelta(days=10), activated=True, activated_at=now,
+            expires_at=now + timedelta(days=5), activated=True, activated_at=now,
         ))
         await db.commit()
 
@@ -595,7 +595,7 @@ async def test_renewal_warning_endpoint_ignores_stale_expired_row(admin_client):
     data = resp.json()
     assert data["warning"] is True
     assert data["tier"] == "pro", f"expected the fresh 'pro' license, got: {data}"
-    assert 0 <= data["days_remaining"] <= 10
+    assert 0 <= data["days_remaining"] <= 5
 
 
 @pytest.mark.asyncio
@@ -618,3 +618,76 @@ async def test_renewal_warning_endpoint_no_active_license_within_30d(admin_clien
     resp = await admin_client.get("/api/license/renewal-warning")
     assert resp.status_code == 200, resp.text
     assert resp.json()["warning"] is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("tier,days_left,expect", [
+    ("farm", 30, False),            # fresh monthly key: renewed automatically, no nag
+    ("farm", 8, False),
+    ("farm", 6, True),              # last week: renewal is failing, warn
+    ("airgap_standard", 25, True),  # offline 12-month licence: warn a month ahead
+    ("airgap_standard", 40, False),
+])
+async def test_renewal_warning_window_by_plan_type(admin_client, tier, days_left, expect):
+    from datetime import datetime, timedelta, timezone
+    from app.db import AsyncSessionLocal
+    from app.models_db import IssuedLicense
+
+    now = datetime.now(timezone.utc)
+    async with AsyncSessionLocal() as db:
+        db.add(IssuedLicense(
+            stripe_customer_id=f"cus_win_{tier}_{days_left}", email="admin", tier=tier,
+            device_limit=150, license_key=f"win-{tier}-{days_left}",
+            stripe_session_id=f"cs_win_{tier}_{days_left}",
+            expires_at=now + timedelta(days=days_left, hours=1), activated=True, activated_at=now,
+        ))
+        await db.commit()
+    data = (await admin_client.get("/api/license/renewal-warning")).json()
+    assert data["warning"] is expect, data
+    if expect:
+        assert "_" not in data["message"] and "license ends in" in data["message"]
+
+
+@pytest.mark.asyncio
+async def test_renewal_warning_follows_the_newest_valid_licence(admin_client):
+    """Online monthly keys are re-issued each cycle and superseded rows stay
+    activated. The banner must describe the key in force (newest activated,
+    still valid), not an older valid row that happens to end sooner."""
+    from datetime import datetime, timedelta, timezone
+    from app.db import AsyncSessionLocal
+    from app.models_db import IssuedLicense
+
+    now = datetime.now(timezone.utc)
+    async with AsyncSessionLocal() as db:
+        db.add(IssuedLicense(  # last month's key: still valid for 3 more days
+            stripe_customer_id="cus_cycle", email="admin", tier="pro", device_limit=40,
+            license_key="cycle-old", stripe_session_id="cs_cycle_old",
+            expires_at=now + timedelta(days=3), activated=True, activated_at=now - timedelta(days=27),
+        ))
+        db.add(IssuedLicense(  # this month's key: renewed, 27 days left
+            stripe_customer_id="cus_cycle", email="admin", tier="pro", device_limit=40,
+            license_key="cycle-new", stripe_session_id="cs_cycle_new",
+            expires_at=now + timedelta(days=27), activated=True, activated_at=now,
+        ))
+        await db.commit()
+    data = (await admin_client.get("/api/license/renewal-warning")).json()
+    assert data == {"warning": False}, data
+
+
+@pytest.mark.asyncio
+async def test_renewal_warning_keeps_warning_after_lapse(admin_client):
+    from datetime import datetime, timedelta, timezone
+    from app.db import AsyncSessionLocal
+    from app.models_db import IssuedLicense
+
+    now = datetime.now(timezone.utc)
+    async with AsyncSessionLocal() as db:
+        db.add(IssuedLicense(
+            stripe_customer_id="cus_lapsed", email="admin", tier="farm", device_limit=150,
+            license_key="lapsed", stripe_session_id="cs_lapsed",
+            expires_at=now - timedelta(days=2), activated=True, activated_at=now - timedelta(days=33),
+        ))
+        await db.commit()
+    data = (await admin_client.get("/api/license/renewal-warning")).json()
+    assert data["warning"] is True and data["expired"] is True and data["days_remaining"] == 0
+    assert "Farm license has ended" in data["message"]

@@ -1,6 +1,7 @@
 """Shared types for the MEMAR Unified Messaging Hub."""
 
 from __future__ import annotations
+from ..timeutil import utcnow as _utcnow
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -18,7 +19,7 @@ class AlertEvent:
     severity: str        # info | warning | error | critical
     data: dict           # raw event payload (available in Jinja2 templates)
     device_id: str | None = None
-    ts: datetime = field(default_factory=datetime.utcnow)
+    ts: datetime = field(default_factory=_utcnow)
 
 
 class MessagingAdapter(ABC):

@@ -308,7 +308,8 @@ async def test_scan_single_host_finds_octoprint():
             assert results[0].ip == "192.168.1.100"
             assert results[0].port == 80
             assert results[0].protocol == "octoprint"
-            assert results[0].name == "octoprint"
+            # Raw name is None here; scan_network applies "OctoPrint <ip>:<port>" (contract).
+            assert results[0].name is None
 
 
 @pytest.mark.asyncio

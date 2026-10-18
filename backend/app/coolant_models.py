@@ -7,6 +7,7 @@ comes from CNCMetricsLog. NOTE: no shipped adapter currently reports coolant_psi
 for that source.
 """
 
+from .timeutil import utcnow as _utcnow
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
@@ -81,7 +82,7 @@ class CoolantDepletionPredictor:
                     current_psi=0, status="no_data",
                 )
 
-            cutoff = datetime.utcnow() - timedelta(hours=24)
+            cutoff = _utcnow() - timedelta(hours=24)
             past = (await self.db.execute(
                 select(CNCMetricsLog)
                 .where(

@@ -89,6 +89,11 @@ class SSOSettings(Base):
     oidc_redirect_uri = Column(String(500), nullable=True)
     ldap_server = Column(String(500), nullable=True)
     ldap_user_dn_template = Column(String(500), nullable=True)
+    # SAML 2.0 (saml_service.py). The IdP certificate is pinned here, never fetched at login.
+    saml_idp_entity_id = Column(String(500), nullable=True)
+    saml_idp_sso_url = Column(String(500), nullable=True)
+    saml_idp_cert_pem = Column(Text, nullable=True)
+    saml_sp_entity_id = Column(String(500), nullable=True)
     ldap_default_role = Column(String(50), nullable=True)
     sso_default_role = Column(String(50), nullable=True)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -156,6 +161,10 @@ class AuditLog(Base):
     detail = Column(Text, nullable=True)  # JSON or free text detail
     ip_address = Column(String(45), nullable=True)  # IPv4 or IPv6
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    # Tamper evidence (audit.py): row_hash = SHA-256 over this row's content and
+    # prev_hash. NULL for rows written before the chain was introduced.
+    prev_hash = Column(String(64), nullable=True)
+    row_hash = Column(String(64), nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="audit_logs")

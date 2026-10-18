@@ -42,10 +42,13 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-charts': ['recharts'],
-          'vendor-3d': ['three'],
-          'vendor-motion': ['framer-motion'],
+        // Function form: Rolldown (Vite 8+) no longer accepts the object form.
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined
+          if (/[\\/]node_modules[\\/](recharts|d3-[^\\/]+|victory-vendor)[\\/]/.test(id)) return 'vendor-charts'
+          if (/[\\/]node_modules[\\/]three[\\/]/.test(id)) return 'vendor-3d'
+          if (/[\\/]node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/.test(id)) return 'vendor-motion'
+          return undefined
         },
       },
     },

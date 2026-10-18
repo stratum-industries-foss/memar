@@ -1,5 +1,6 @@
 """Analytics and reporting API endpoints."""
 
+from .timeutil import utcnow as _utcnow
 import os
 import re
 import time
@@ -78,7 +79,7 @@ async def get_fleet_kpi_snapshot(db: AsyncSession = Depends(get_db), _: dict = D
             )
 
     payload = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": _utcnow().isoformat(),
         "oee": oee_block,
         "utilization_pct": util.get("utilization_pct"),
         "error_rate_pct": errr.get("error_rate_pct"),
@@ -98,7 +99,7 @@ async def get_fleet_kpi(db: AsyncSession = Depends(get_db), _: dict = Depends(ge
     """Fleet-level or device-specific KPI snapshot. If device_id is provided, returns per-device OEE trend."""
     calc = FleetKPICalculator(db)
     return {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": _utcnow().isoformat(),
         "utilization": await calc.calculate_utilization(hours=24),
         "oee_trend": await calc.calculate_oee_trend(days=7, device_id=device_id),
         "error_rate": await calc.calculate_error_rate(hours=24),
@@ -113,7 +114,7 @@ async def get_coolant_depletion(db: AsyncSession = Depends(get_db), _: dict = De
     predictor = CoolantDepletionPredictor(db)
     fleet_analysis = await predictor.analyze_fleet()
     return {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": _utcnow().isoformat(),
         "devices": [a.model_dump() for a in fleet_analysis],
         "critical_count": sum(1 for a in fleet_analysis if a.status == "critical"),
         "declining_count": sum(1 for a in fleet_analysis if a.status == "declining"),
@@ -136,7 +137,7 @@ async def get_monthly_pdf(year: int, month: int, db: AsyncSession = Depends(get_
         "success": True,
         "report_type": "monthly",
         "period": f"{year}-{month:02d}",
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": _utcnow().isoformat(),
         "html": html  # Frontend can render or convert to PDF
     }
 
@@ -157,7 +158,7 @@ async def send_monthly_report(
     _validate_report_recipient(recipient_email, allowed)
 
     # Default to current month if not specified
-    now = datetime.utcnow()
+    now = _utcnow()
     year = year or now.year
     month = month or now.month
 
@@ -191,7 +192,7 @@ async def send_bulk_reports(
     for email in recipient_list:
         _validate_report_recipient(email, allowed)
 
-    now = datetime.utcnow()
+    now = _utcnow()
     year = year or now.year
     month = month or now.month
 

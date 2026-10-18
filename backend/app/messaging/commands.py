@@ -5,6 +5,7 @@ handler. Authorization is performed against the MessagingIdentity table.
 """
 
 from __future__ import annotations
+from ..timeutil import utcnow as _utcnow
 
 import logging
 from datetime import datetime, timedelta
@@ -96,7 +97,7 @@ class CommandRouter:
 async def _handle_status(args: list[str], db) -> str:
     from ..models_db import FleetStatusLog
 
-    cutoff = datetime.utcnow() - timedelta(minutes=5)
+    cutoff = _utcnow() - timedelta(minutes=5)
     # The sampler writes ~1 row/device/minute, so grouping-and-counting raw rows
     # over the window ~5x-overcounts devices. Reduce to the latest row per device
     # first (order device_id, timestamp desc → first seen is newest), then count.
@@ -134,7 +135,7 @@ async def _handle_machines(args: list[str], db) -> str:
     from sqlalchemy import func as sqlfunc
     from ..models_db import FleetStatusLog
 
-    cutoff = datetime.utcnow() - timedelta(minutes=5)
+    cutoff = _utcnow() - timedelta(minutes=5)
     # DISTINCT ON is Postgres-only (CompileError on SQLite). Order by
     # device_id, timestamp desc and dedupe in Python — the first row seen per
     # device is its latest status. Dialect-portable.
@@ -175,7 +176,7 @@ async def _handle_machine(args: list[str], db) -> str:
     device_id = args[0]
     from ..models_db import FleetStatusLog, JobLog, AnomalyAck
 
-    cutoff = datetime.utcnow() - timedelta(minutes=10)
+    cutoff = _utcnow() - timedelta(minutes=10)
     latest = (
         await db.execute(
             select(FleetStatusLog)
