@@ -4,7 +4,7 @@ import logging
 import os
 from typing import Callable
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +29,7 @@ security = HTTPBearer(auto_error=False)
 async def get_current_user_allow_pwchange(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db),
+    request: Request = None,
 ) -> dict:
     """
     Validate Bearer token and return current user info, WITHOUT enforcing the
@@ -56,6 +57,26 @@ async def get_current_user_allow_pwchange(
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Personal API tokens (mem_...) are checked here so every route accepts them without
+    # change. A token that is valid but not allowed for this method is 403, not 401.
+    from .api_tokens import looks_like_api_token, resolve as resolve_api_token
+    if looks_like_api_token(credentials.credentials):
+        try:
+            # The real method of the request being authorised. The health check calls this
+            # without a request; it is a GET-only probe, so GET is the correct default there.
+            method = request.method if request is not None else "GET"
+            identity = await resolve_api_token(db, credentials.credentials, method)
+        except PermissionError as exc:
+            raise HTTPException(status_code=403, detail=str(exc))
+        if identity is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        await db.commit()  # persists last_used_at
+        return identity
 
     try:
         payload = decode_access_token(credentials.credentials)

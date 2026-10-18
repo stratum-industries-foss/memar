@@ -115,6 +115,27 @@ class RefreshToken(Base):
     user = relationship("User", back_populates="refresh_tokens")
 
 
+class ApiToken(Base):
+    """Personal API token: long-lived, hashed at rest, shown once, revocable.
+
+    Only the SHA-256 of the token is stored. scope "read" allows GET/HEAD/OPTIONS
+    only; scope "full" allows the owner's full role. A token stops working when its
+    owner is suspended or deleted (checked against the live user row on every call).
+    """
+
+    __tablename__ = "api_tokens"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    token_hash = Column(String(64), nullable=False, unique=True)
+    scope = Column(String(10), nullable=False, default="read")  # "read" | "full"
+    expires_at = Column(DateTime, nullable=True)
+    revoked = Column(Boolean, default=False, nullable=False)
+    last_used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+
 class Webhook(Base):
     """Webhooks table for event delivery configuration."""
 

@@ -64,6 +64,7 @@ from .admin import admin_router
 from .audit import audit_router, record_audit, record_audit_batch
 from . import compliance_export  # noqa: F401  (registers /api/admin/audit/export on audit_router)
 from .saml_routes import saml_router
+from .api_token_routes import api_token_router
 from .sso import sso_admin_router, sso_router
 from .branding import branding_router
 from .cnc_routes import router as cnc_router
@@ -2128,6 +2129,7 @@ from .setup_routes import setup_router  # noqa: E402
 app.include_router(setup_router)
 app.include_router(audit_router)
 app.include_router(saml_router)
+app.include_router(api_token_router)
 app.include_router(sso_router)
 app.include_router(sso_admin_router)
 app.include_router(branding_router)
