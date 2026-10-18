@@ -5,6 +5,22 @@ import * as useMacrosStateModule from '../useMacrosState'
 import type { MacrosState } from '../useMacrosState'
 import type { DrawerProps } from '../../App'
 
+
+import { AppDrawerContext } from '../../context/AppContext'
+import { render as rtlRender } from '@testing-library/react'
+
+// The drawer reads searchTerm/setSearchTerm from the app context; render it inside one,
+// as App.tsx does. Without it useAppDrawer() correctly throws.
+function renderWithContext(ui: React.ReactElement, overrides: Record<string, unknown> = {}) {
+  const value = {
+    printerId: 'printer1',
+    searchTerm: '',
+    setSearchTerm: () => {},
+    ...overrides,
+  } as any
+  return rtlRender(<AppDrawerContext.Provider value={value}>{ui}</AppDrawerContext.Provider>)
+}
+
 // Mock the useMacrosState hook
 vi.mock('../useMacrosState', () => ({
   useMacrosState: vi.fn(),
@@ -46,14 +62,14 @@ describe('MacrosDrawer', () => {
 
   it('renders null when no printer selected', () => {
     const props: DrawerProps = { printerId: 'printer1' }
-    const { container } = render(<MacrosDrawer {...props} currentPrinter={null} />)
+    const { container } = renderWithContext(<MacrosDrawer {...props} currentPrinter={null} />)
     expect(container.querySelector('.drawer-section')).toBeInTheDocument()
     expect(screen.getByText('No printer selected')).toBeInTheDocument()
   })
 
   it('renders macros drawer with title', () => {
     const props: DrawerProps = { printerId: 'printer1', currentPrinter: mockPrinter }
-    render(<MacrosDrawer {...props} />)
+    renderWithContext(<MacrosDrawer {...props} />)
     expect(screen.getByText('Macros')).toBeInTheDocument()
   })
 
@@ -65,7 +81,7 @@ describe('MacrosDrawer', () => {
     })
 
     const props: DrawerProps = { printerId: 'printer1', currentPrinter: mockPrinter }
-    render(<MacrosDrawer {...props} />)
+    renderWithContext(<MacrosDrawer {...props} />)
     expect(screen.getByText('No macros detected.')).toBeInTheDocument()
   })
 
@@ -89,7 +105,7 @@ describe('MacrosDrawer', () => {
     })
 
     const props: DrawerProps = { printerId: 'printer1', currentPrinter: mockPrinter }
-    render(<MacrosDrawer {...props} />)
+    renderWithContext(<MacrosDrawer {...props} />)
 
     expect(screen.getByText('HEATING')).toBeInTheDocument()
     expect(screen.getByText('MOVEMENT')).toBeInTheDocument()
@@ -115,7 +131,7 @@ describe('MacrosDrawer', () => {
     })
 
     const props: DrawerProps = { printerId: 'printer1', currentPrinter: mockPrinter }
-    render(<MacrosDrawer {...props} />)
+    renderWithContext(<MacrosDrawer {...props} />)
 
     const macroButton = screen.getByText('TEST_MACRO')
     fireEvent.click(macroButton)
@@ -142,12 +158,12 @@ describe('MacrosDrawer', () => {
       currentPrinter: mockPrinter,
       canWrite: true,
     }
-    const { rerender } = render(<MacrosDrawer {...props} />)
+    const { rerender } = renderWithContext(<MacrosDrawer {...props} />)
 
     expect(screen.getByLabelText('Run TEST_MACRO')).toBeInTheDocument()
 
     // Re-render with canWrite=false
-    rerender(<MacrosDrawer {...props} canWrite={false} />)
+    rerender(<AppDrawerContext.Provider value={{ printerId: 'printer1', searchTerm: '', setSearchTerm: () => {} } as any}><MacrosDrawer {...props} canWrite={false} /></AppDrawerContext.Provider>)
     expect(screen.queryByLabelText('Run TEST_MACRO')).not.toBeInTheDocument()
   })
 })

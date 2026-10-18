@@ -50,13 +50,15 @@ def _resolve_reset_recipient(username: str) -> "str | None":
 
 
 def _public_url() -> str:
-    """Base URL for links in outgoing mail: MEMAR_PUBLIC_URL when set, else the
-    same address the setup link uses (LAN address and port). Never a public
-    default; empty when neither is known so callers can say 'not configured'."""
-    explicit = os.getenv("MEMAR_PUBLIC_URL", "").strip().rstrip("/")
-    if explicit:
-        return explicit
-    return ""
+    """Base URL for links in outgoing mail. Same source as the setup link and the
+    SSO callbacks (firstrun.public_base_url), so the three never disagree. When that
+    resolves only to 'localhost' (inside a container, with no MEMAR_PUBLIC_URL) it is
+    useless to a recipient, so return empty and let callers say 'not configured'."""
+    from .firstrun import public_base_url
+    url = public_base_url().rstrip("/")
+    if "localhost" in url or "127.0.0.1" in url:
+        return ""
+    return url
 
 async def send_license_email(email: str, tier: str, license_key: str) -> bool:
     """Send license key via SMTP. Returns True on success."""

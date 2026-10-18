@@ -20,6 +20,9 @@
 - **Floor plan overlay** — Drag-drop device placement with live status visualization
 - **Webhook events** — `printer.error`, `printer.complete`, `printer.offline`, etc.
 - **Role-based access control** — Admin, operator, viewer roles with JWT auth
+- **Single sign-on** — SAML 2.0 (paid plans): pinned identity-provider certificate, signed-response checks, accounts kept separate from local ones
+- **API tokens** — Admin-created personal tokens, hashed at rest, read or full scope, revocable and expiring
+- **Tamper-evident audit log** — Hash-chained entries with a verification endpoint and a compliance export
 - **Offline licensing** — Ed25519-signed license keys, flat-rate licensing (no per-machine fees)
 - **Adapter ecosystem** — 18 machine adapters: **6 supported** (Klipper/Moonraker, OctoPrint, Prusa Connect, Marlin, Duet, FluidNC) and **12 alpha** (Bambu Lab, generic MQTT, GRBL, LinuxCNC, Mach3, Mach4, OPC-UA, Sinumerik, Haas, Fanuc, Fadal, OpenPCB/OpenPnP). Equipment types (FDM, SLA, CNC, laser, plasma, waterjet, vinyl, pick-and-place, wire EDM) are available as device labels; dedicated adapters exist only for the protocols listed. ⚠️ Bambu Lab uses reverse-engineered APIs (unverified against live hardware). The four CNC controllers **Haas, Fanuc, Fadal, and Mach4 are unverified against real hardware — emergency-stop is not guaranteed**; treat as pilot/roadmap until validated on your machine (see the status table below)
 - **Messaging hub** — Fan-out alerts to Telegram, Slack, Discord, ntfy, Mattermost, Matrix, or any webhook. Chat commands (status, acknowledge) on Telegram, Matrix, and Mattermost, and on Slack/Discord when configured with bot tokens; ntfy and generic webhooks are outbound only.

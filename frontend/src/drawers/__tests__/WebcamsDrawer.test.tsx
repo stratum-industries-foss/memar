@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { WebcamsDrawer } from '../WebcamsDrawer'
+import WebcamsDrawer from '../WebcamsDrawer'
 import { useWebcamsState } from '../useWebcamsState'
 
 /**

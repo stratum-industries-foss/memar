@@ -910,10 +910,14 @@ describe('DrawerIntegration', () => {
   // ──────────────────────────────────────────────────────────────────────────
 
   describe('Edge cases and coverage', () => {
-    it('should handle missing context gracefully', () => {
-      render(<MultiDrawerConsumer />)
-      // Component should render with default context values
-      expect(screen.getByTestId('active-section')).toBeInTheDocument()
+    it('fails loudly when the drawer context is missing', () => {
+      // A drawer rendered outside the app's provider must throw, not show default data.
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      try {
+        expect(() => render(<MultiDrawerConsumer />)).toThrow(/AppDrawerContext\.Provider/)
+      } finally {
+        spy.mockRestore()
+      }
     })
 
     it('should handle rapid tab switches', () => {

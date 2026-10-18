@@ -217,6 +217,10 @@ describe('SetupWizard v2', () => {
     expect(toSubnet('192.168.2.x')).toBe('192.168.2.0/24')
     expect(toSubnet(' 192.168.2 ')).toBe('192.168.2.0/24')
     expect(toSubnet('10.0.0.0/22')).toBe('10.0.0.0/22')
+    // Invalid octets are returned unchanged, not turned into a subnet (audit 12).
+    expect(toSubnet('999.1.1.x')).toBe('999.1.1.x')
+    expect(toSubnet('192.168.256.x')).toBe('192.168.256.x')
+    expect(toSubnet('192.168.255.x')).toBe('192.168.255.0/24')
   })
 
   it('names an unnamed OctoPrint plainly and says why it is not ticked', async () => {

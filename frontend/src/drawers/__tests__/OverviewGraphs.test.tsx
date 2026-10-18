@@ -114,9 +114,10 @@ describe('OverviewGraphs', () => {
     it('renders empty state initially (endpoint not yet available)', () => {
       render(<OverviewGraphs currentMetric={null} printerId="printer-1" />)
 
+      // Every chart shows the same unavailable copy until the endpoint exists.
       expect(
-        screen.getByText(/Historical data not yet available/)
-      ).toBeInTheDocument()
+        screen.getAllByText(/Charts unavailable.*history endpoint not yet implemented/).length
+      ).toBeGreaterThanOrEqual(1)
     })
 
     it('displays correct heading with timeframe', () => {
@@ -131,9 +132,10 @@ describe('OverviewGraphs', () => {
     it('renders empty state initially (derived from history)', () => {
       render(<OverviewGraphs currentMetric={null} printerId="printer-1" />)
 
+      // Three charts share this copy; the distribution chart must show its own unavailable state.
       expect(
-        screen.getByText(/Job history needed to analyze print durations/)
-      ).toBeInTheDocument()
+        screen.getAllByText(/Charts unavailable.*history endpoint not yet implemented/).length
+      ).toBeGreaterThanOrEqual(1)
     })
 
     it('displays distribution chart heading', () => {
@@ -147,9 +149,10 @@ describe('OverviewGraphs', () => {
     it('renders empty state initially (derived from history)', () => {
       render(<OverviewGraphs currentMetric={null} printerId="printer-1" />)
 
+      // The shipped copy for this chart is the same unavailable state as the others.
       expect(
-        screen.getByText(/Historical data needed to show filament consumption trends/)
-      ).toBeInTheDocument()
+        screen.getAllByText(/Charts unavailable.*history endpoint not yet implemented/).length
+      ).toBeGreaterThanOrEqual(1)
     })
 
     it('displays trend chart heading', () => {

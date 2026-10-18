@@ -377,7 +377,7 @@ describe('OverviewDrawer', () => {
       const props = createBaseProps({ canWrite: true })
       const { getByPlaceholderText, getByText } = render(<OverviewDrawer {...props} />)
 
-      expect(getByText('Filament')).toBeInTheDocument()
+      expect(getByText('Filament used')).toBeInTheDocument()
       expect(getByPlaceholderText('Material (e.g. PLA)')).toBeInTheDocument()
       expect(getByPlaceholderText('Remaining (g)')).toBeInTheDocument()
       expect(getByText('Update')).toBeInTheDocument()
@@ -387,7 +387,7 @@ describe('OverviewDrawer', () => {
       const props = createBaseProps({ canWrite: false })
       const { container, getByText } = render(<OverviewDrawer {...props} />)
 
-      expect(getByText('Filament')).toBeInTheDocument()
+      expect(getByText('Filament used')).toBeInTheDocument()
       const materialInputs = container.querySelectorAll('input[placeholder*="Material"]')
       expect(materialInputs).toHaveLength(0)
     })
@@ -408,7 +408,8 @@ describe('OverviewDrawer', () => {
       expect(setQuickMaterial).toHaveBeenCalledWith('PETG')
 
       fireEvent.change(remainingInput, { target: { value: '150' } })
-      expect(setQuickRemaining).toHaveBeenCalledWith('150')
+      // The field is numeric (parseInt in OverviewDrawer), so the handler receives a number.
+      expect(setQuickRemaining).toHaveBeenCalledWith(150)
     })
 
     it('calls saveQuickFilamentWithLog when Update button is clicked', () => {

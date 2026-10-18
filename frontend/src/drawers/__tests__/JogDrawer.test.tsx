@@ -78,8 +78,8 @@ describe('JogDrawer', () => {
     render(<JogDrawer {...props} />)
 
     expect(screen.getByText('Jog controls')).toBeInTheDocument()
-    expect(screen.getByLabelText('Jog distance (mm)')).toBeInTheDocument()
-    expect(screen.getByLabelText('Jog feedrate (mm/min)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Distance (mm)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Jog feedrate in millimeters per minute')).toBeInTheDocument()
   })
 
   it('renders D-pad controls with arrow buttons', () => {
@@ -178,7 +178,7 @@ describe('JogDrawer', () => {
     }
     render(<JogDrawer {...props} />)
 
-    const distanceInput = screen.getByLabelText('Jog distance (mm)') as HTMLInputElement
+    const distanceInput = screen.getByLabelText('Distance (mm)') as HTMLInputElement
     expect(distanceInput.disabled).toBe(true)
 
     const xPlusButton = screen.getByLabelText('Jog X+ (right)') as HTMLButtonElement

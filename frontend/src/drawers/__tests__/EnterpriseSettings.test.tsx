@@ -3,14 +3,42 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { useEnterpriseSettings } from '../useEnterpriseSettings'
 
+// A settings payload matching the EnterpriseSettings type (useEnterpriseSettings.ts).
+const SETTINGS_PAYLOAD = {
+  sso: { enabled: false, provider: 'oidc', autoSyncRoles: false },
+  messaging: [],
+  roles: [],
+  branding: {},
+  webhooks: [],
+  analytics: {},
+  advancedOptions: {
+    binaryCacheDays: 7,
+    cacheSize: '1GB',
+    refreshInterval: 30,
+    betaFeaturesEnabled: false,
+    telemetryEnabled: false,
+  },
+}
+
 describe('useEnterpriseSettings', () => {
-  const mockFetch = vi.fn()
+  // Resolves the load (GET /api/settings/enterprise) with a real payload, so the hook has
+  // settings to edit. Without a response the load fails and settings stay null.
+  const mockFetch = vi.fn(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => SETTINGS_PAYLOAD,
+  }))
 
   beforeEach(() => {
     mockFetch.mockClear()
+    mockFetch.mockImplementation(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => SETTINGS_PAYLOAD,
+    }))
   })
 
   it('should initialize with default settings', () => {
@@ -19,8 +47,12 @@ describe('useEnterpriseSettings', () => {
     expect(result.current.error).toBe(null)
   })
 
-  it('should update SSO configuration', () => {
+  it('should update SSO configuration', async () => {
     const { result } = renderHook(() => useEnterpriseSettings(mockFetch))
+
+    // updateSso is a no-op until settings have loaded (it has nothing to edit yet),
+    // so wait for the load before editing.
+    await waitFor(() => expect(result.current.settings).not.toBeNull())
 
     act(() => {
       result.current.updateSso({ enabled: true, provider: 'oidc' })
@@ -105,9 +137,10 @@ describe('useEnterpriseSettings', () => {
     }
   })
 
-  it('should track unsaved changes', () => {
+  it('should track unsaved changes', async () => {
     const { result } = renderHook(() => useEnterpriseSettings(mockFetch))
 
+    await waitFor(() => expect(result.current.settings).not.toBeNull())
     expect(result.current.unsavedChanges).toBe(false)
 
     act(() => {

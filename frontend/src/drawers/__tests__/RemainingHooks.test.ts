@@ -676,14 +676,16 @@ describe('useExcludeObjects', () => {
   })
 
   it('should fetch and display available objects', async () => {
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          available_objects: mockExcludeObjects,
-          excluded_objects: [],
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                available_objects: mockExcludeObjects,
+                excluded_objects: [],
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useExcludeObjects('printer-1'))
 
@@ -697,14 +699,16 @@ describe('useExcludeObjects', () => {
   })
 
   it('should track excluded objects list', async () => {
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          available_objects: mockExcludeObjects,
-          excluded_objects: ['support_1'],
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                available_objects: mockExcludeObjects,
+                excluded_objects: ['support_1'],
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useExcludeObjects('printer-1'))
 
@@ -718,14 +722,16 @@ describe('useExcludeObjects', () => {
   })
 
   it('should handle empty object list gracefully', async () => {
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          available_objects: [],
-          excluded_objects: [],
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                available_objects: [],
+                excluded_objects: [],
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useExcludeObjects('printer-1'))
 
@@ -745,14 +751,16 @@ describe('useExcludeObjects', () => {
 describe('useExcludeObjects — Exclude/Include Operations', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          available_objects: mockExcludeObjects,
-          excluded_objects: [],
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                available_objects: mockExcludeObjects,
+                excluded_objects: [],
+              }),
+              { status: 200 }
+            )
+    )
   })
 
   it('should exclude an object via API and update state', async () => {
@@ -862,15 +870,17 @@ describe('useSpoolManagement', () => {
   })
 
   it('should fetch and display spool log entries', async () => {
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          entries: mockSpoolLog,
-          totalUsed: 10,
-          currentRemaining: 10,
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                entries: mockSpoolLog,
+                totalUsed: 10,
+                currentRemaining: 10,
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useSpoolManagement('printer-1'))
 
@@ -884,15 +894,17 @@ describe('useSpoolManagement', () => {
   })
 
   it('should calculate total used filament from log', async () => {
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          entries: mockSpoolLog,
-          totalUsed: 500,
-          currentRemaining: 10,
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                entries: mockSpoolLog,
+                totalUsed: 500,
+                currentRemaining: 10,
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useSpoolManagement('printer-1'))
 
@@ -904,15 +916,17 @@ describe('useSpoolManagement', () => {
   })
 
   it('should handle initial state from props', async () => {
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          entries: mockSpoolLog,
-          totalUsed: 10,
-          currentRemaining: 10,
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                entries: mockSpoolLog,
+                totalUsed: 10,
+                currentRemaining: 10,
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useSpoolManagement('printer-1', mockSpoolLog))
 
@@ -926,15 +940,17 @@ describe('useSpoolManagement', () => {
   })
 
   it('should calculate remaining filament correctly', async () => {
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          entries: mockSpoolLog,
-          totalUsed: 10,
-          currentRemaining: 1000,
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                entries: mockSpoolLog,
+                totalUsed: 10,
+                currentRemaining: 1000,
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useSpoolManagement('printer-1'))
 
@@ -1002,15 +1018,17 @@ describe('useSpoolManagement — Adjustment Recording', () => {
   it('should notify toast callback on adjustment success', async () => {
     const mockToast = vi.fn()
 
-    new Response(
-        JSON.stringify({
-          printer_id: 'printer-1',
-          entries: mockSpoolLog,
-          totalUsed: 10,
-          currentRemaining: 10,
-        }),
-        { status: 200 }
-      )
+    global.fetch = vi.fn(async () =>
+      new Response(
+              JSON.stringify({
+                printer_id: 'printer-1',
+                entries: mockSpoolLog,
+                totalUsed: 10,
+                currentRemaining: 10,
+              }),
+              { status: 200 }
+            )
+    )
 
     const { result } = renderHook(() => useSpoolManagement('printer-1', [], mockToast))
 

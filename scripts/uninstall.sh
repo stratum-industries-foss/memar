@@ -42,7 +42,16 @@ if command -v systemctl >/dev/null 2>&1; then
   systemctl daemon-reload >/dev/null 2>&1 || true
 fi
 
-if [ -d /opt/memar ]; then rm -rf /opt/memar; removed+=("/opt/memar"); fi
+# Code (releases, current link) always goes. The shared config (/opt/memar/shared, which
+# holds devices.yaml) is user data: keep it unless --purge, as the header promises.
+if [ -d /opt/memar/releases ]; then rm -rf /opt/memar/releases; removed+=("/opt/memar/releases"); fi
+if [ -L /opt/memar/current ] || [ -e /opt/memar/current ]; then rm -rf /opt/memar/current; removed+=("/opt/memar/current"); fi
+if [ "$PURGE" = 1 ]; then
+  if [ -d /opt/memar/shared ]; then rm -rf /opt/memar/shared; removed+=("/opt/memar/shared"); fi
+  rmdir /opt/memar 2>/dev/null && removed+=("/opt/memar") || true
+else
+  kept+=("/opt/memar/shared (device config; --purge removes it)")
+fi
 if [ -f /usr/local/bin/memar ]; then rm -f /usr/local/bin/memar; removed+=("/usr/local/bin/memar"); fi
 
 if [ "$PURGE" = 1 ]; then

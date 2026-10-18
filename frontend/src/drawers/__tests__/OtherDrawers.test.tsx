@@ -100,7 +100,7 @@ describe('AnalyticsDrawer', () => {
     expect(oeeElements.length).toBeGreaterThan(0)
   })
 
-  it('renders null when currentMetric is null', () => {
+  it('shows the empty state when currentMetric is null', () => {
     vi.mocked(useAnalyticsState).mockReturnValue({
       currentMetric: null,
       oeeByDevice: new Map(),
@@ -109,8 +109,8 @@ describe('AnalyticsDrawer', () => {
     const props: DrawerProps = { printerId: 'printer3' }
     const { container } = render(<AnalyticsDrawer {...props} />)
 
-    // Should render nothing (null component)
-    expect(container.firstChild).toBeNull()
+    // Deliberate empty state (AnalyticsDrawer.tsx), not a blank render.
+    expect(container.textContent).toContain('No analytics data yet')
   })
 
   it('handles success_rate as null gracefully', () => {
@@ -227,13 +227,13 @@ describe('DryrunDrawer', () => {
     expect(screen.getByText('Action dry-run')).toBeInTheDocument()
   })
 
-  it('displays placeholder message', () => {
+  it('renders the action dry-run section', () => {
     const props: DrawerProps = { printerId: 'printer1' }
     render(<DryrunDrawer {...props} />)
 
-    expect(
-      screen.getByText('Extract dry-run UI from original App.tsx lines ~5072-5122')
-    ).toBeInTheDocument()
+    // The drawer is built; this checks its real heading. The old text was a developer
+    // comment from the App.tsx split, never product copy.
+    expect(screen.getAllByText('Action dry-run').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders even without printerId', () => {
@@ -337,7 +337,7 @@ describe('Shared error boundary handling', () => {
     const props: DrawerProps = { printerId: undefined }
     const { container } = render(<CoolantDrawer {...props} />)
 
-    // Should not throw, just render null
+    // Deliberate: these drawers render nothing without a printer (line 6 of each).
     expect(container.firstChild).toBeNull()
   })
 
@@ -345,7 +345,7 @@ describe('Shared error boundary handling', () => {
     const props: DrawerProps = { printerId: undefined }
     const { container } = render(<HealthDrawer {...props} />)
 
-    // Should not throw, just render null
+    // Deliberate: these drawers render nothing without a printer (line 6 of each).
     expect(container.firstChild).toBeNull()
   })
 
@@ -358,8 +358,8 @@ describe('Shared error boundary handling', () => {
     const props: DrawerProps = { printerId: 'printer1' }
     const { container } = render(<AnalyticsDrawer {...props} />)
 
-    // Should not throw, just render null
-    expect(container.firstChild).toBeNull()
+    // Should not throw; shows the deliberate empty state.
+    expect(container.textContent).toContain('No analytics data yet')
   })
 
   it('DryrunDrawer renders without errors regardless of props', () => {

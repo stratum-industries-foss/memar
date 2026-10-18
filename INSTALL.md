@@ -225,6 +225,44 @@ On the issuer instance only, set `MEMAR_LICENSE_PRIVATE_KEY` to the private valu
 
 ---
 
+## Single sign-on (SAML 2.0)
+
+Available on paid plans with the `sso` feature. Verified against a test identity provider in a real browser; check it against your own provider before you rely on it.
+
+1. Sign in as an admin, open **Admin → SSO**, and fill in the SAML section:
+   - **IdP entity ID** and **IdP sign-on URL** from your identity provider.
+   - **IdP signing certificate (PEM)**: paste the public certificate. MEMAR pins it and does not fetch metadata at login.
+   - **Service provider entity ID** (optional): leave blank to use `<your MEMAR address>/api/auth/saml/metadata`.
+2. Give your identity provider the **assertion consumer URL** shown on the same screen (`<your MEMAR address>/api/auth/saml/acs`, HTTP-POST binding).
+3. The **Sign in with SAML** button appears on the login page once the settings are saved and the plan is active.
+
+Notes:
+- A SAML user is created with the viewer role by default. Change it under **SSO default role**.
+- A SAML name that matches an existing local account is refused, not signed in.
+- If your identity provider rotates its signing key, paste the new certificate here. Until you do, MEMAR refuses logins, which is the intended behaviour.
+- Set `MEMAR_PUBLIC_URL` to the address your browser uses (for example `https://memar.example.com`) so the assertion consumer URL is correct behind a proxy or port mapping.
+
+## API tokens
+
+A personal token lets a script or integration call the API as a user, without a password. Tokens are created by an admin.
+
+```
+POST /api/admin/api-tokens
+{"name": "ci-read", "scope": "read", "expires_in_days": 90}
+```
+
+- The token (`mem_...`) is returned **once**. MEMAR stores only its hash; if you lose it, revoke it and create another.
+- `scope: "read"` allows GET requests only. `scope: "full"` has the owner's role.
+- `GET /api/admin/api-tokens` lists tokens without their values. `DELETE /api/admin/api-tokens/{id}` revokes one.
+- A token stops working when it is revoked, when it expires, or when its owner is suspended.
+- Use it as a bearer token: `Authorization: Bearer mem_...`.
+
+## Audit log verification
+
+Every audit entry is hash-chained to the one before it. `GET /api/admin/audit/verify` (admin, Pro and above) re-checks the chain and reports the first entry that was edited or removed. Entries written before the chain existed are reported as unchained, not as tampered.
+
+The chain shows changes made after the fact. It does not stop someone with database access from rewriting the whole chain, so compare the reported chain head with a copy kept elsewhere if you need that guarantee. The compliance export (`GET /api/admin/audit/export`, CSV or JSON) includes the chain head.
+
 ## Stripe webhook (production)
 
 1. Create products and prices in the Stripe Dashboard. Copy the Price IDs into `MEMAR_STRIPE_PRICE_*`.

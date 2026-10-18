@@ -98,10 +98,12 @@ describe('handleConsoleKey — TAB completion', () => {
     expect(typed.cycle.index).toBe(0)
   })
 
-  it('leaves the input untouched when nothing matches, but still preventDefaults', () => {
+  it('leaves the input untouched and lets focus move when nothing matches', () => {
+    // A Tab that completes nothing is NOT prevented, so focus can leave the console
+    // (keyboard users are not trapped). This has been the behaviour since 3b33892.
     const e = key('Tab')
     const next = handleConsoleKey(e, state({ input: 'ZZZQQ' }))
-    expect(e.preventDefault).toHaveBeenCalled()
+    expect(e.preventDefault).not.toHaveBeenCalled()
     expect(next?.input).toBe('ZZZQQ')
     expect(next?.cycle).toEqual(NO_COMPLETION_CYCLE)
   })

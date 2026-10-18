@@ -16,6 +16,12 @@ import userEvent from '@testing-library/user-event'
 import MaterialSelector from '../MaterialSelector'
 import { DEFAULT_MATERIALS } from '../../types/material'
 
+// Materials are applied by clicking a material card (role="button", name "Material: <name>...").
+// The old per-material "Apply" label no longer exists in the component.
+function materialCards() {
+  return screen.getAllByRole('button', { name: /^Material:/ })
+}
+
 describe('MaterialSelector', () => {
   describe('Preset Materials', () => {
     it('renders all default materials', () => {
@@ -57,7 +63,7 @@ describe('MaterialSelector', () => {
 
       fireEvent.click(screen.getByText(/Material library/))
 
-      const applyButtons = screen.getAllByText('Apply')
+      const applyButtons = materialCards()
       fireEvent.click(applyButtons[0])
 
       await waitFor(() => {
@@ -71,7 +77,7 @@ describe('MaterialSelector', () => {
       fireEvent.click(screen.getByText(/Material library/))
       expect(screen.getByText('PLA')).toBeInTheDocument()
 
-      const applyButtons = screen.getAllByText('Apply')
+      const applyButtons = materialCards()
       fireEvent.click(applyButtons[0])
 
       await waitFor(() => {
@@ -271,7 +277,7 @@ describe('MaterialSelector', () => {
 
       fireEvent.click(screen.getByText(/Material library/))
 
-      const applyButtons = screen.getAllByText('Apply')
+      const applyButtons = materialCards()
       await user.click(applyButtons[0])
 
       await waitFor(() => {
@@ -286,7 +292,7 @@ describe('MaterialSelector', () => {
 
       fireEvent.click(screen.getByText(/Material library/))
 
-      const applyButtons = screen.getAllByText('Apply')
+      const applyButtons = materialCards()
       expect(() => {
         fireEvent.click(applyButtons[0])
       }).not.toThrow()

@@ -95,9 +95,9 @@ describe('SettingsDrawer', () => {
 
   it('renders empty state when settings draft is null', () => {
     ;(useSettingsState as any).mockReturnValue({ ...mockHookState, settingsDraft: null })
-    render(<SettingsDrawer printerId="p1" currentPrinter={null} canWrite={false} />)
-    expect(screen.getByText('Settings unavailable')).toBeInTheDocument()
-    expect(screen.getByText('Unable to load printer settings. Try reloading or select another printer.')).toBeInTheDocument()
+    const { container } = render(<SettingsDrawer printerId="p1" currentPrinter={null} canWrite={false} />)
+    // SettingsDrawer returns null without a draft (deliberate: nothing to edit yet).
+    expect(container.firstChild).toBeNull()
   })
 
   it('renders quick settings section with nozzle presets', () => {

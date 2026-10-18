@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { DryrunDrawer } from '../DryrunDrawer'
+import DryrunDrawer from '../DryrunDrawer'
 
 /**
  * TEST 1: DryrunDrawer renders all major sections

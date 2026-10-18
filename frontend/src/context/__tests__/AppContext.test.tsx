@@ -195,16 +195,10 @@ describe('DrawerProvider', () => {
       expect(result.current.activeSection).toBe('temperature')
     })
 
-    it('should return default values when context is not provided', () => {
-      const { result } = renderHook(() => useAppDrawer())
-
-      // Hook should return sensible defaults when no provider is present
-      expect(result.current.printerId).toBe('')
-      expect(result.current.activeSection).toBeNull()
-      expect(result.current.canWrite).toBe(false)
-      expect(result.current.searchTerm).toBe('')
-      expect(result.current.currentPrinter).toBeNull()
-      expect(result.current.macros).toEqual([])
+    it('throws when no provider is present (a missing provider must fail loudly)', () => {
+      // Deliberate since 6e354a3: returning defaults would hide a drawer rendered outside
+      // the app's provider, which then shows empty data as if it were real.
+      expect(() => renderHook(() => useAppDrawer())).toThrow(/AppDrawerContext\.Provider/)
     })
 
     it('useDrawerContext should be an alias for useAppDrawer', () => {
@@ -731,13 +725,9 @@ describe('DrawerProvider', () => {
       expect(AppDrawerContext.Consumer).toBeDefined()
     })
 
-    it('should handle null context gracefully in useAppDrawer', () => {
-      const { result } = renderHook(() => useAppDrawer())
-      // Should not throw and should return defaults
-      expect(() => {
-        result.current.setActiveSection('overview')
-        result.current.setSearchTerm('test')
-      }).not.toThrow()
+    it('should fail loudly with no provider rather than return defaults', () => {
+      // Matches the deliberate throw in useAppDrawer (see 6e354a3).
+      expect(() => renderHook(() => useAppDrawer())).toThrow(/AppDrawerContext\.Provider/)
     })
   })
 })

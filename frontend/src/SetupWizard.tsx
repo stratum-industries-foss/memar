@@ -80,7 +80,12 @@ const rowKey = (r: ScanResult): string => `${r.ip}:${r.port}`
 export const toSubnet = (raw: string): string => {
   const t = raw.trim()
   const m = t.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?:\.(?:x|\*|0|\d{1,3}))?$/i)
-  return m && !t.includes('/') ? `${m[1]}.${m[2]}.${m[3]}.0/24` : t
+  if (!m || t.includes('/')) return t
+  // Each octet must be 0-255. Without this, 999.1.1.x built a non-address that the scanner
+  // then rejected with an unclear error. Returning the input unchanged lets the user see it.
+  const octets = [m[1], m[2], m[3]].map(Number)
+  if (octets.some((o) => o > 255)) return t
+  return `${m[1]}.${m[2]}.${m[3]}.0/24`
 }
 
 // Display title: a found device without a name of its own reads as "OctoPrint printer";

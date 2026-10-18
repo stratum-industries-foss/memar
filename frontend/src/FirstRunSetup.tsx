@@ -47,26 +47,38 @@ type LicenseOutcome = { ok: boolean; message: string }
 
 export async function activateLicense(key: string, accessToken: string): Promise<LicenseOutcome> {
   const rejected = 'License key not accepted.'
+  // A network failure or server error is not a bad key: say so, so the user retries
+  // instead of believing a valid key was refused.
+  const unreachable =
+    'Could not reach MEMAR to check the license key. Check the connection and try again. Your setup code is unchanged.'
+  let res: Response
   try {
-    const res = await fetch(`${API_BASE}/api/license/activate`, {
+    res = await fetch(`${API_BASE}/api/license/activate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify({ license_key: key }),
     })
-    if (!res.ok) return { ok: false, message: rejected }
+  } catch {
+    return { ok: false, message: unreachable }
+  }
+  if (res.status >= 500) return { ok: false, message: unreachable }
+  if (!res.ok) return { ok: false, message: rejected }
+  try {
     const st = await fetch(`${API_BASE}/api/license/status`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
     if (st.ok) {
-      const info = await st.json() as { tier?: string; device_limit?: number }
+      const info = (await st.json()) as { tier?: string; device_limit?: number }
       if (info.tier) {
-        const limit = typeof info.device_limit === 'number' ? ` — up to ${info.device_limit.toLocaleString()} devices` : ''
+        const limit =
+          typeof info.device_limit === 'number' ? ` — up to ${info.device_limit.toLocaleString()} devices` : ''
         return { ok: true, message: `${tierLabel(info.tier)} plan active${limit}` }
       }
     }
     return { ok: true, message: 'License activated.' }
   } catch {
-    return { ok: false, message: rejected }
+    // The key was accepted; only the status read failed. Do not call that a rejection.
+    return { ok: true, message: 'License activated.' }
   }
 }
 
