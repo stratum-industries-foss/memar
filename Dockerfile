@@ -22,7 +22,7 @@ RUN /venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Stage 3: Rust CV tools. Runs on the build host and cross-compiles for
 # TARGETARCH, so an arm64 image does not run cargo under QEMU.
-FROM --platform=$BUILDPLATFORM rust:1.98-slim AS rust-builder
+FROM --platform=$BUILDPLATFORM rust:1.99-slim AS rust-builder
 ARG TARGETARCH
 WORKDIR /build
 COPY tools/print-cv ./print-cv
