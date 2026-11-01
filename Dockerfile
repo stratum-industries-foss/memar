@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.cache npm run build
 # Output lands at /build/frontend_dist/ (vite outDir: ../frontend_dist)
 
 # Stage 2: Python dependencies into a venv (built for the target platform)
-FROM python:3.13-slim AS python-builder
+FROM python:3.15-slim AS python-builder
 WORKDIR /build
 RUN python3 -m venv /venv
 COPY backend/requirements.txt ./
@@ -48,7 +48,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry set -eux; \
     cp "print-cv/target/$T/release/print-cv" "spool-cv/target/$T/release/spool-cv" /out/
 
 # Stage 4: final image
-FROM python:3.13-slim
+FROM python:3.15-slim
 WORKDIR /app
 
 # Node.js runtime for the Higgsfield CLI (official Debian packages, no curl|bash)
